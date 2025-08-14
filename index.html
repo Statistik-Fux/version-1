@@ -256,10 +256,7 @@
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.table_to_sheet(table, {raw: true});
 
-        // Überschrift einfügen
         XLSX.utils.sheet_add_aoa(ws, [[`Statistik vs ${currentOpponent}`]], {origin: "A1"});
-
-        // Spaltenbreiten anpassen
         ws['!cols'] = Array(table.rows[0].cells.length).fill({wch: 12});
 
         XLSX.utils.book_append_sheet(wb, ws, "Stats");
@@ -277,8 +274,16 @@
             theme: 'grid',
             styles: { lineWidth: 0.2, lineColor: [0,0,0], halign: 'center', valign: 'middle' },
             headStyles: { fillColor: [240,240,240], textColor: 0, lineWidth: 0.2, lineColor: [0,0,0] },
-            columnStyles: { [actionsPositive.length + 1]: { cellWidth: 2, fillColor: [0,0,0] } },
-            didDrawPage: () => { doc.setFontSize(10); doc.text(`Erstellt am: ${new Date().toLocaleString()}`, 14, 200); }
+            didParseCell: (data) => {
+                if (data.column.index === actionsPositive.length + 1) {
+                    data.cell.styles.lineLeftWidth = 0.6;
+                    data.cell.styles.lineLeftColor = [0,0,0];
+                }
+            },
+            didDrawPage: () => {
+                doc.setFontSize(10);
+                doc.text(`Erstellt am: ${new Date().toLocaleString()}`, 14, 200);
+            }
         });
         doc.save(`${tableID}.pdf`);
     }
