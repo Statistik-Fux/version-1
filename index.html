@@ -114,7 +114,7 @@ th { background: #f0f0f0; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-(() => {
+   (() => {
     const cb = Date.now();
     const col1 = document.getElementById("col1");
     const col2 = document.getElementById("col2");
@@ -131,20 +131,9 @@ th { background: #f0f0f0; }
         FuxA: ["Leo Nowak","Simon Poppe","Fritz Parke","Fynn Paulicks","Filip Dominikovic","Leo Tautenhahn","Antonio D'Incecco","Noah Skei","Simon Sirot","Albert Schmidt","Gabor Zeuch","Christopher Losch","Davide Babini","Tillman Stark","Henning Lahuis","Ole Krake","Matteo Agistonelli"]
     };
 
-    // Kategorien intern
     const categories = {
-        Fux2: [
-            ...Array(8).fill("Rückraum"),
-            ...Array(5).fill("Außen"),
-            ...Array(3).fill("Kreis"),
-            ...Array(2).fill("Torhüter")
-        ],
-        FuxA: [
-            ...Array(8).fill("Rückraum"),
-            ...Array(4).fill("Außen"),
-            ...Array(2).fill("Kreis"),
-            ...Array(3).fill("Torhüter")
-        ]
+        Fux2: [...Array(8).fill("Rückraum"), ...Array(5).fill("Außen"), ...Array(3).fill("Kreis"), ...Array(2).fill("Torhüter")],
+        FuxA: [...Array(8).fill("Rückraum"), ...Array(4).fill("Außen"), ...Array(2).fill("Kreis"), ...Array(3).fill("Torhüter")]
     };
 
     let playerNames = [...teams.Fux2];
@@ -188,7 +177,7 @@ th { background: #f0f0f0; }
             const checkbox = document.createElement("input");
             checkbox.type = "checkbox"; checkbox.value = i + 1;
             label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(` ${name}`)); // Kategorie nicht sichtbar
+            label.appendChild(document.createTextNode(` ${name}`));
             (i < Math.ceil(playerNames.length / 2) ? col1 : col2).appendChild(label);
         });
     }
@@ -203,7 +192,6 @@ th { background: #f0f0f0; }
         const n = newPlayerNameInput.value.trim();
         const cat = newPlayerCategorySelect.value;
         if(n){
-            // Insert nach Kategorie sortiert
             let insertIndex = playerCategories.findIndex(c => c !== cat);
             if(insertIndex === -1) insertIndex = playerCategories.length;
             playerNames.splice(insertIndex,0,n);
@@ -284,90 +272,115 @@ th { background: #f0f0f0; }
         });
         updateTables();
     }
-</script>
-<script>
-function updateTables() {
-    const buildTable = (id, header1, rows) => {
-        let headerRow = `<tr><th>${header1}</th>` +
-            actionsPositive.map(a => `<th>${a.label}</th>`).join("") +
-            actionsNegative.map((a,i) => `<th class="${i===0 ? "thick-separator" : ""}">${a.label}</th>`).join("") +
-            `<th>WQ</th><th>WQ inkl. TF</th></tr>`;
-        return `<table id="${id}">${headerRow}${rows}</table>`;
-    };
+       function updateTables() {
+        const buildTable = (id, header1, rows) => {
+            let extraHeaders = id === "teamTable" ? "<th>TW</th>" : "";
+            let headerRow = `<tr><th>${header1}</th>` +
+                actionsPositive.map(a => `<th>${a.label}</th>`).join("") +
+                actionsNegative.map((a,i) => `<th class="${i===0 ? "thick-separator" : ""}">${a.label}</th>`).join("") +
+                `<th>WQ</th><th>WQ inkl. TF</th>` + extraHeaders + `</tr>`;
+            return `<table id="${id}">${headerRow}${rows}</table>`;
+        };
 
-    // Spielerstatistik
-    let playerRows = "";
-    let lastCategory = null;
-    Object.keys(playersData).forEach(num => {
-        const cat = playerCategories[num-1];
-        if (lastCategory && lastCategory !== cat) {
-            playerRows += `<tr><td colspan="${actionsPositive.length + actionsNegative.length + 2 + 1}"></td></tr>`;
-        }
-        lastCategory = cat;
+        // Spielerstatistik
+        let playerRows = "";
+        let lastCategory = null;
+        Object.keys(playersData).forEach(num => {
+            const cat = playerCategories[num-1];
+            if (lastCategory && lastCategory !== cat) {
+                playerRows += `<tr><td colspan="${actionsPositive.length + actionsNegative.length + 2 + 1}"></td></tr>`;
+            }
+            lastCategory = cat;
 
-        let posSum = actionsPositive.reduce((s,a)=>s+playersData[num][a.key],0);
-        let negSumExTF = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+playersData[num][a.key],0);
-        let negSum = actionsNegative.reduce((s,a)=>s+playersData[num][a.key],0);
+            let posSum = actionsPositive.reduce((s,a)=>s+playersData[num][a.key],0);
+            let negSumExTF = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+playersData[num][a.key],0);
+            let negSum = actionsNegative.reduce((s,a)=>s+playersData[num][a.key],0);
 
-        let wq = posSum+negSumExTF>0 ? (posSum/(posSum+negSumExTF)*100).toFixed(1)+"%" : "-";
-        let wqTF = posSum+negSum>0 ? (posSum/(posSum+negSum)*100).toFixed(1)+"%" : "-";
+            let wq = posSum+negSumExTF>0 ? (posSum/(posSum+negSumExTF)*100).toFixed(1)+"%" : "-";
+            let wqTF = posSum+negSum>0 ? (posSum/(posSum+negSum)*100).toFixed(1)+"%" : "-";
 
-        playerRows += `<tr><td>${playerNames[num-1]}</td>` +
-            actionsPositive.map(a => `<td>${playersData[num][a.key]}</td>`).join("") +
-            actionsNegative.map((a,i) => `<td class="${i===0 ? "thick-separator" : ""}">${playersData[num][a.key]}</td>`).join("") +
-            `<td>${wq}</td><td>${wqTF}</td></tr>`;
+            playerRows += `<tr><td>${playerNames[num-1]}</td>` +
+                actionsPositive.map(a => `<td>${playersData[num][a.key]}</td>`).join("") +
+                actionsNegative.map((a,i) => `<td class="${i===0 ? "thick-separator" : ""}">${playersData[num][a.key]}</td>`).join("") +
+                `<td>${wq}</td><td>${wqTF}</td></tr>`;
+        });
+        document.getElementById("playerStats").innerHTML = buildTable("playerTable", "Spieler", playerRows);
+
+        // Teamstatistik
+        let sums = {};
+        [...actionsPositive, ...actionsNegative].forEach(a => sums[a.key] = 0);
+        Object.values(playersData).forEach(p => Object.keys(p).forEach(k => sums[k] += p[k]));
+
+        // Nicht-Torhüter für WQ
+        let nonGoalkeepers = Object.keys(playersData).filter(n => playerCategories[n-1] !== "Torhüter");
+        let posTotalNonGK = actionsPositive.reduce((s,a) => s + nonGoalkeepers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+        let negTotalExTFNonGK = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a) => s + nonGoalkeepers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+        let negTotalNonGK = actionsNegative.reduce((s,a) => s + nonGoalkeepers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+
+        let teamWQ = posTotalNonGK+negTotalExTFNonGK>0 ? (posTotalNonGK/(posTotalNonGK+negTotalExTFNonGK)*100).toFixed(1)+"%" : "-";
+        let teamWQTF = posTotalNonGK+negTotalNonGK>0 ? (posTotalNonGK/(posTotalNonGK+negTotalNonGK)*100).toFixed(1)+"%" : "-";
+
+        // TW für Torhüter
+        let goalkeepers = Object.keys(playersData).filter(n => playerCategories[n-1] === "Torhüter");
+        let posGK = actionsPositive.reduce((s,a) => s + goalkeepers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+        let negExTFGK = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a) => s + goalkeepers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+        let tw = posGK+negExTFGK>0 ? (posGK/(posGK+negExTFGK)*100).toFixed(1)+"%" : "-";
+
+        let teamRow = `<tr><td>Gesamt</td>` +
+            actionsPositive.map(a=>`<td>${sums[a.key]}</td>`).join("") +
+            actionsNegative.map((a,i)=>`<td class="${i===0 ? "thick-separator" : ""}">${sums[a.key]}</td>`).join("") +
+            `<td>${teamWQ}</td><td>${teamWQTF}</td><td>${tw}</td></tr>`;
+
+        document.getElementById("teamStats").innerHTML = buildTable("teamTable", "Team", teamRow);
+    }
+
+    function exportTableToExcel(tableID) {
+        const table = document.getElementById(tableID);
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.table_to_sheet(table, {raw: true});
+        XLSX.utils.sheet_add_aoa(ws, [[`Statistik vs ${currentOpponent}`]], {origin: "A1"});
+        ws['!cols'] = Array(table.rows[0].cells.length).fill({wch: 12});
+        XLSX.utils.book_append_sheet(wb, ws, "Stats");
+        XLSX.writeFile(wb, `${tableID}.xlsx`);
+    }
+
+    function exportTableToPDF(tableID) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({orientation: 'landscape', unit: 'mm', format: 'a4'});
+        doc.setFontSize(16);
+        doc.text(`Statistik vs ${currentOpponent}`, 14, 15);
+        doc.autoTable({
+            html: `#${tableID}`,
+            startY: 20,
+            theme: 'grid',
+            styles: { lineWidth: 0.2, lineColor: [0,0,0], halign: 'center', valign: 'middle' },
+            headStyles: { fillColor: [240,240,240], textColor: 0, lineWidth: 0.2, lineColor: [0,0,0] },
+            didParseCell: (data) => {
+                // dicke vertikale Linie zwischen positiven und negativen Aktionen
+                if (data.column.index === actionsPositive.length) {
+                    data.cell.styles.lineLeftWidth = 1.5;
+                    data.cell.styles.lineLeftColor = [0,0,0];
+                }
+            },
+            didDrawPage: () => {
+                doc.setFontSize(10);
+                doc.text(`Erstellt am: ${new Date().toLocaleString()}`, 14, 200);
+            }
+        });
+        doc.save(`${tableID}.pdf`);
+    }
+
+    document.querySelectorAll("button[data-export]").forEach(btn => {
+        btn.addEventListener("click", e => {
+            const type = e.target.getAttribute("data-export");
+            const table = e.target.getAttribute("data-table");
+            if (type === "excel") exportTableToExcel(table);
+            if (type === "pdf") exportTableToPDF(table);
+        });
     });
-    document.getElementById("playerStats").innerHTML = buildTable("playerTable", "Spieler", playerRows);
 
-    // Teamstatistik
-    let sums = {};
-    [...actionsPositive, ...actionsNegative].forEach(a => sums[a.key] = 0);
-    Object.values(playersData).forEach(p => Object.keys(p).forEach(k => sums[k] += p[k]));
-
-    let posTotal = actionsPositive.reduce((s,a)=>s+sums[a.key],0);
-    let negTotalExTF = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+sums[a.key],0);
-    let negTotal = actionsNegative.reduce((s,a)=>s+sums[a.key],0);
-
-    // Berechne nur Spieler ohne Kategorie "Torhüter"
-    let posNoGK = 0, negNoGKExTF = 0, negNoGK = 0;
-    Object.keys(playersData).forEach(num => {
-        if(playerCategories[num-1] !== "Torhüter") {
-            posNoGK += actionsPositive.reduce((s,a)=>s+playersData[num][a.key],0);
-            negNoGKExTF += actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+playersData[num][a.key],0);
-            negNoGK += actionsNegative.reduce((s,a)=>s+playersData[num][a.key],0);
-        }
-    });
-
-    let teamWQ = posNoGK+negNoGKExTF>0 ? (posNoGK/(posNoGK+negNoGKExTF)*100).toFixed(1)+"%" : "-";
-    let teamWQTF = posNoGK+negNoGK>0 ? (posNoGK/(posNoGK+negNoGK)*100).toFixed(1)+"%" : "-";
-
-    // Berechne TW für Torhüter
-    let posGK=0, negGKExTF=0;
-    Object.keys(playersData).forEach(num => {
-        if(playerCategories[num-1] === "Torhüter") {
-            posGK += actionsPositive.reduce((s,a)=>s+playersData[num][a.key],0);
-            negGKExTF += actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+playersData[num][a.key],0);
-        }
-    });
-    let teamTW = posGK+negGKExTF>0 ? (posGK/(posGK+negGKExTF)*100).toFixed(1)+"%" : "-";
-
-    let teamRow = `<tr><td>Gesamt</td>` +
-        actionsPositive.map(a=>`<td>${sums[a.key]}</td>`).join("") +
-        actionsNegative.map((a,i)=>`<td class="${i===0 ? "thick-separator" : ""}">${sums[a.key]}</td>`).join("") +
-        `<td>${teamWQ}</td><td>${teamWQTF}</td><td>${teamTW}</td></tr>`;
-
-    document.getElementById("teamStats").innerHTML = buildTable("teamTable", "Team", teamRow);
-}
-
-// Export-Funktionen für Excel/PDF unverändert, jsPDF Autotable berücksichtigt jetzt die vertikale Trennlinie
-document.querySelectorAll("button[data-export]").forEach(btn => {
-    btn.addEventListener("click", e => {
-        const type = e.target.getAttribute("data-export");
-        const table = e.target.getAttribute("data-table");
-        if (type === "excel") exportTableToExcel(table);
-        if (type === "pdf") exportTableToPDF(table);
-    });
-});
+    startBtn.addEventListener("click", validateAndStart);
+})();
 </script>
 </body>
 </html>
