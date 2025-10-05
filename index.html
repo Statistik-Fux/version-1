@@ -108,10 +108,6 @@ th { background: #f0f0f0; }
     <button data-export="pdf" data-table="teamTable">Export PDF</button>
 </div>
 <div id="teamStats"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 (() => {
     const col1 = document.getElementById("col1");
@@ -179,11 +175,10 @@ th { background: #f0f0f0; }
             return;
         }
         currentOpponent = opponent;
-        startGame(opponent, selected);
+        window.startGame(opponent, selected);
     };
 
     startBtn.addEventListener("click", validateAndStart);
-
     window.renderPlayerCheckboxes = renderPlayerCheckboxes;
 
     window.addEventListener("load", () => {
@@ -239,7 +234,7 @@ th { background: #f0f0f0; }
             card.className = "player-card";
             const nameDiv = document.createElement("div");
             nameDiv.className = "player-name";
-            nameDiv.textContent = window.playerNames ? window.playerNames[num-1] : "Spieler " + num;
+            nameDiv.textContent = window.playerNames[num-1];
             card.appendChild(nameDiv);
 
             [...actionsPositive, ...actionsNegative].forEach((a, idx) => {
@@ -248,11 +243,12 @@ th { background: #f0f0f0; }
                 if (a.key.startsWith("TF") && idx >= actionsPositive.length) btn.classList.add("full-width");
                 btn.textContent = `${a.label} (0)`;
 
-                const isFieldPlayer = window.playerCategories ? window.playerCategories[num-1] !== "Torhüter" : true;
+                const isFieldPlayer = window.playerCategories[num-1] !== "Torhüter";
                 const canAddTempo = (idx < actionsPositive.length || a.key === "TF_neg") && isFieldPlayer;
 
                 let clickTimer = null;
                 longPressActive = false;
+                let dblClickActive = false;
 
                 const startPress = () => {
                     longPressActive = false;
@@ -277,7 +273,6 @@ th { background: #f0f0f0; }
                     }
                 };
 
-                let dblClickActive = false;
                 btn.addEventListener("dblclick", e => {
                     dblClickActive = true;
                     if (clickTimer) clearTimeout(clickTimer);
@@ -318,7 +313,11 @@ th { background: #f0f0f0; }
         const temp = window.playersData[num][a.key + "_temp"];
         return temp > 0 ? `${a.label} (${val} (${temp}))` : `${a.label} (${val})`;
     }
-    <script>
+
+    window.startGame = startGame;
+})();
+</script>
+<script>
 function updateTables() {
     const buildTable = (id, header1, rows) => {
         let extraHeaders = id === "teamTable" ? "<th>Tempotore</th><th>TW</th>" : "";
@@ -403,6 +402,7 @@ function exportTableToPDF(tableID) {
     doc.save(`${tableID}.pdf`);
 }
 
+// Export-Buttons
 document.querySelectorAll("button[data-export]").forEach(btn => {
     btn.addEventListener("click", e => {
         const type = e.target.getAttribute("data-export");
@@ -412,5 +412,3 @@ document.querySelectorAll("button[data-export]").forEach(btn => {
     });
 });
 </script>
-</body>
-</html>
