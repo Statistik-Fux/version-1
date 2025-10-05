@@ -30,103 +30,129 @@ h1, h2 { text-align: center; margin-bottom: 15px; }
 #opponent, #teamSelect {
     font-size: 1.1em; padding: 12px; width: 100%; margin-bottom: 20px;
     border: 1px solid #ccc; border-radius: 8px; background-color: rgba(255,255,255,0.85);
+    transition: border-color 0.3s, box-shadow 0.3s; color: black;
 }
-#player-selection { display: flex; gap: 10px; justify-content: space-between; }
+#opponent:focus, #teamSelect:focus {
+    outline: none; border-color: #009688; box-shadow: 0 0 5px rgba(0,150,136,0.5);
+}
+
+#player-selection { display: flex; gap: 10px; flex-wrap: nowrap; justify-content: space-between; }
 #player-selection .column { width: 48%; display: flex; flex-direction: column; gap: 8px; }
+#player-selection label { cursor: pointer; font-size: 1em; padding: 4px 0; }
+#player-selection input[type="checkbox"] { margin-right: 6px; transform: scale(1.2); }
 
 .add-player-container { margin-top: 15px; display: flex; gap: 5px; }
-.add-player-container input, .add-player-container select {
+.add-player-container input {
     flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px;
+}
+.add-player-container select {
+    margin-left:5px; padding:6px; border-radius:6px; border:1px solid #ccc;
 }
 .add-player-container button {
     padding: 8px 12px; border: none; border-radius: 6px;
-    background-color: #009688; color: white; cursor: pointer;
+    background-color: #009688; color: white; cursor: pointer; font-size: 1em;
 }
+.add-player-container button:hover { background-color: #00796b; }
+
 .start-btn {
     font-size: 1.3em; padding: 12px 15px;
     background: linear-gradient(90deg, #009688, #26a69a);
     color: white; border: none; border-radius: 8px; cursor: pointer;
-    width: 100%; margin-top: 20px;
+    width: 100%; margin-top: 20px; transition: background 0.3s, transform 0.1s;
 }
-.player-card { border-radius: 8px; padding: 10px; margin: 10px; background: white;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.05); min-width: 250px; }
+.start-btn:hover { background: linear-gradient(90deg, #00796b, #26a69a); }
+.start-btn:active { transform: scale(0.98); }
+
+.player-card {
+    border-radius: 8px; padding: 10px; margin: 10px; flex: 1; min-width: 250px;
+    background: white; box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+}
 .player-name { font-weight: bold; font-size: 1.4em; text-align: center; margin-bottom: 10px; }
+
 .grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 10px; }
 
-.btn { width: 31%; padding: 8px; margin: 2px 1%; border: none; cursor: pointer;
-    font-size: 0.9em; border-radius: 6px; user-select: none; }
+.btn {
+    width: 31%; padding: 8px; margin: 2px 1%; border: none; cursor: pointer;
+    font-size: 0.9em; border-radius: 6px; user-select: none;
+}
 .positive { background-color: #d4edda; }
 .negative { background-color: #f8d7da; }
 .full-width { width: 98%; }
 
-table { width: 100%; border-collapse: collapse; margin-top: 20px; background-color: white; font-size: 0.9em; }
+table {
+    width: 100%; border-collapse: collapse; margin-top: 20px;
+    background-color: white; font-size: 0.9em;
+}
 th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
 th { background: #f0f0f0; }
 .thick-separator { border-left: 3px solid black !important; }
+
 .export-buttons { margin-top: 20px; text-align: center; }
 .hidden { display: none; }
 
 @media (max-width: 768px) {
     .btn { width: 48%; font-size: 0.85em; padding: 6px; }
-    .player-card { width: 100%; }
+    .player-card { min-width: unset; width: 100%; }
+    #player-selection { flex-direction: column; }
+    #player-selection .column { width: 100%; }
+    table { font-size: 0.8em; }
 }
 </style>
 </head>
 <body>
-<main id="setup">
-<h1>Willkommen!</h1>
-<input type="text" id="opponent" placeholder="Gegner eingeben">
-<select id="teamSelect">
-    <option value="Fux2">Fux2</option>
-    <option value="FuxA">FuxA</option>
-</select>
-<section id="player-selection">
-    <div class="column" id="col1"></div>
-    <div class="column" id="col2"></div>
-</section>
-<div class="add-player-container">
-    <input type="text" id="newPlayerName" placeholder="Spielername eingeben">
-    <select id="newPlayerCategory">
-        <option value="Rückraum">Rückraum</option>
-        <option value="Außen">Außen</option>
-        <option value="Kreis">Kreis</option>
-        <option value="Torhüter">Torhüter</option>
+    <main id="setup">
+    <h1>Willkommen!</h1>
+    <input type="text" id="opponent" placeholder="Gegner eingeben">
+    <select id="teamSelect">
+        <option value="Fux2">Fux2</option>
+        <option value="FuxA">FuxA</option>
     </select>
-    <button type="button" id="addPlayerBtn">+</button>
-</div>
-<button class="start-btn" id="startBtn">Start</button>
+
+    <section id="player-selection">
+        <div class="column" id="col1"></div>
+        <div class="column" id="col2"></div>
+    </section>
+
+    <div class="add-player-container">
+        <input type="text" id="newPlayerName" placeholder="Spielername eingeben">
+        <select id="newPlayerCategory">
+            <option value="Rückraum">Rückraum</option>
+            <option value="Außen">Außen</option>
+            <option value="Kreis">Kreis</option>
+            <option value="Torhüter">Torhüter</option>
+        </select>
+        <button type="button" id="addPlayerBtn">+</button>
+    </div>
+
+    <button class="start-btn" id="startBtn">Start</button>
 </main>
 
 <h1 id="headline" class="hidden"></h1>
 <div id="players" class="grid"></div>
 
 <div class="export-buttons hidden" id="playerExport">
-    <button id="exportExcelPlayer">Export Excel</button>
-    <button id="exportPdfPlayer">Export PDF</button>
+    <button data-export="excel" data-table="playerTable">Export Excel</button>
+    <button data-export="pdf" data-table="playerTable">Export PDF</button>
 </div>
 <div id="playerStats"></div>
 
 <div class="export-buttons hidden" id="teamExport">
-    <button id="exportExcelTeam">Export Excel</button>
+    <button data-export="excel" data-table="teamTable">Export Excel</button>
+    <button data-export="pdf" data-table="teamTable">Export PDF</button>
 </div>
 <div id="teamStats"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
 <script>
 (() => {
     const cb = Date.now();
     const col1 = document.getElementById("col1");
     const col2 = document.getElementById("col2");
+    const startBtn = document.getElementById("startBtn");
     const teamSelect = document.getElementById("teamSelect");
     const addPlayerBtn = document.getElementById("addPlayerBtn");
     const newPlayerNameInput = document.getElementById("newPlayerName");
     const newPlayerCategorySelect = document.getElementById("newPlayerCategory");
-    const startBtn = document.getElementById("startBtn");
 
     let currentOpponent = "";
-    let playersData = {};
 
     const teams = {
         Fux2: ["Julian Kusche","Gabriel Kofler","Lauro Pichiri","Felix Bernkop-Schnürch","Rune Laskowski","Lucas Mohr","Navi Yatawarage","William Reichardt","Justin Wollny","Jan Grüner","Dominik Kupiec","Lennart Steltner","Luca Thiel","Tim Schröder","Jonas Kofler","Till Braren","Pius Joppich","Norman Glamann"],
@@ -141,22 +167,35 @@ th { background: #f0f0f0; }
     let playerNames = [...teams.Fux2];
     let playerCategories = [...categories.Fux2];
 
-    // --- Aktionen ---
     const actionsPositive = [
-        {key:"KM_pos",label:"KM"},{key:"DBR_pos",label:"DBR"},{key:"AUSSEN_pos",label:"Außen"},
-        {key:"NAH_pos",label:"NAH"},{key:"FERN_pos",label:"FERN"},{key:"TGS_pos",label:"TGS"},
-        {key:"LT_pos",label:"Leeres"},{key:"7M_pos",label:"7M"}
+        {key:"KM_pos",label:"KM"},
+        {key:"DBR_pos",label:"DBR"},
+        {key:"AUSSEN_pos",label:"Außen"},
+        {key:"NAH_pos",label:"NAH"},
+        {key:"FERN_pos",label:"FERN"},
+        {key:"TGS_pos",label:"TGS"},
+        {key:"LT_pos",label:"Leeres"},
+        {key:"7M_pos",label:"7M"}
     ];
     const actionsNegative = [
-        {key:"KM_neg",label:"KM"},{key:"DBR_neg",label:"DBR"},{key:"AUSSEN_neg",label:"Außen"},
-        {key:"NAH_neg",label:"NAH"},{key:"FERN_neg",label:"FERN"},{key:"TGS_neg",label:"TGS"},
-        {key:"LT_neg",label:"Leeres"},{key:"7M_neg",label:"7M"},{key:"TF_neg",label:"TF"}
+        {key:"KM_neg",label:"KM"},
+        {key:"DBR_neg",label:"DBR"},
+        {key:"AUSSEN_neg",label:"Außen"},
+        {key:"NAH_neg",label:"NAH"},
+        {key:"FERN_neg",label:"FERN"},
+        {key:"TGS_neg",label:"TGS"},
+        {key:"LT_neg",label:"Leeres"},
+        {key:"7M_neg",label:"7M"},
+        {key:"TF_neg",label:"TF"}
     ];
 
-    // --- Checkboxen anzeigen ---
+    let playersData = {};
+
     window.addEventListener("load", () => {
-        document.styleSheets[0].cssRules[1].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
-        document.styleSheets[0].cssRules[2].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
+        try {
+            document.styleSheets[0].cssRules[1].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
+            document.styleSheets[0].cssRules[2].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
+        } catch(e){}
         renderPlayerCheckboxes();
     });
 
@@ -172,37 +211,37 @@ th { background: #f0f0f0; }
         });
     }
 
-    // --- Team wechseln ---
     teamSelect.addEventListener("change",()=>{
         playerNames=[...teams[teamSelect.value]];
         playerCategories=[...categories[teamSelect.value]];
         renderPlayerCheckboxes();
     });
 
-    // --- Spieler hinzufügen ---
     addPlayerBtn.addEventListener("click",()=>{
         const n=newPlayerNameInput.value.trim();
         const cat=newPlayerCategorySelect.value;
-        if(!n) return;
-        let insertIndex=playerCategories.findLastIndex(c=>c===cat);
-        if(insertIndex===-1) insertIndex=playerCategories.length-1; else insertIndex++;
-        playerNames.splice(insertIndex,0,n);
-        playerCategories.splice(insertIndex,0,cat);
-        renderPlayerCheckboxes();
-        newPlayerNameInput.value="";
+        if(n){
+            let insertIndex=playerCategories.findLastIndex(c=>c===cat);
+            if(insertIndex===-1) insertIndex=playerCategories.length-1;
+            else insertIndex++;
+            playerNames.splice(insertIndex,0,n);
+            playerCategories.splice(insertIndex,0,cat);
+            renderPlayerCheckboxes();
+            newPlayerNameInput.value="";
+        }
     });
 
-    // --- Startbutton ---
     startBtn.addEventListener("click",()=>{
         const opponent=document.getElementById("opponent").value.trim();
         const selected=Array.from(document.querySelectorAll("#player-selection input:checked"));
-        if(!opponent || selected.length<7){
-            alert("Bitte Gegner eingeben und mindestens 7 Spieler auswählen!");
+        if(!opponent||selected.length<7){
+            alert("Bitte korrigieren:\n- Gegner eingeben\n- Mindestens 7 Spieler auswählen");
             return;
         }
         currentOpponent=opponent;
         startGame(opponent,selected.map(cb=>parseInt(cb.value)));
     });
+
     function startGame(opponent,selectedPlayers){
         document.getElementById("headline").innerText=`Statistik vs ${opponent}`;
         document.getElementById("setup").classList.add("hidden");
@@ -214,10 +253,13 @@ th { background: #f0f0f0; }
         playersDiv.innerHTML="";
 
         selectedPlayers.forEach(num=>{
+            // initialize per-player counters
             playersData[num]={};
-            [...actionsPositive,...actionsNegative].forEach(a=>{
+            [...actionsPositive].forEach(a=>{
                 playersData[num][a.key]=0;
-                playersData[num][a.key+"_temp"]=0; // Tempo-Aktion
+            });
+            [...actionsNegative].forEach(a=>{
+                playersData[num][a.key]=0;
             });
 
             const card=document.createElement("div");
@@ -227,55 +269,56 @@ th { background: #f0f0f0; }
             nameDiv.textContent=playerNames[num-1];
             card.appendChild(nameDiv);
 
-            // Buttons erzeugen
             [...actionsPositive,...actionsNegative].forEach((a,idx)=>{
                 const btn=document.createElement("button");
                 btn.className=`btn ${idx<actionsPositive.length?"positive":"negative"}`;
                 if(a.key==="TF_neg") btn.classList.add("full-width");
-                btn.dataset.player=num;
-                btn.dataset.key=a.key;
+
+                btn.dataset.player = num;
+                btn.dataset.key = a.key;
+
                 updateButtonText(btn,num,a.key);
 
-                let clickTimer=null;
-                let pressTimer=null;
-                let longPressTriggered=false;
+                // click & long-press logic
+                let clickTimer = null;
+                let pressTimer = null;
+                let longPressTriggered = false;
 
-                const startPress=()=>{
-                    longPressTriggered=false;
-                    pressTimer=setTimeout(()=>{
-                        longPressTriggered=true;
-                        decrementAction(num,a.key);
+                const startPress = () => {
+                    longPressTriggered = false;
+                    pressTimer = setTimeout(()=>{
+                        longPressTriggered = true;
+                        decrementAction(num, a.key);
                         updateAll();
-                    },600);
+                    }, 600);
                 };
-                const cancelPress=()=>clearTimeout(pressTimer);
+                const cancelPress = () => { clearTimeout(pressTimer); };
 
                 if(window.PointerEvent){
-                    btn.addEventListener("pointerdown",startPress);
-                    btn.addEventListener("pointerup",cancelPress);
-                    btn.addEventListener("pointercancel",cancelPress);
-                    btn.addEventListener("pointerleave",cancelPress);
-                }else{
-                    btn.addEventListener("mousedown",startPress);
-                    btn.addEventListener("mouseup",cancelPress);
-                    btn.addEventListener("mouseleave",cancelPress);
-                    btn.addEventListener("touchstart",()=>startPress(),{passive:true});
-                    btn.addEventListener("touchend",cancelPress);
-                    btn.addEventListener("touchcancel",cancelPress);
+                    btn.addEventListener("pointerdown", startPress);
+                    btn.addEventListener("pointerup", cancelPress);
+                    btn.addEventListener("pointercancel", cancelPress);
+                    btn.addEventListener("pointerleave", cancelPress);
+                } else {
+                    btn.addEventListener("mousedown", startPress);
+                    btn.addEventListener("mouseup", cancelPress);
+                    btn.addEventListener("mouseleave", cancelPress);
+                    btn.addEventListener("touchstart", startPress, {passive:true});
+                    btn.addEventListener("touchend", cancelPress);
+                    btn.addEventListener("touchcancel", cancelPress);
                 }
 
-                // Klick / Doppelklick
-                btn.addEventListener("click",()=>{
+                btn.addEventListener("click",(e)=>{
                     if(longPressTriggered){ longPressTriggered=false; return; }
                     if(clickTimer==null){
-                        clickTimer=setTimeout(()=>{
-                            handleSingleClick(num,a.key);
-                            clickTimer=null;
+                        clickTimer = setTimeout(()=>{
+                            handleSingleClick(num, a.key);
+                            clickTimer = null;
                         },250);
                     } else {
                         clearTimeout(clickTimer);
-                        clickTimer=null;
-                        handleDoubleClick(num,a.key);
+                        clickTimer = null;
+                        handleDoubleClick(num, a.key);
                     }
                 });
 
@@ -294,13 +337,8 @@ th { background: #f0f0f0; }
         updateAll();
     }
 
-    function decrementAction(num,key){
-        if(playersData[num][key+"_temp"]>0){
-            playersData[num][key+"_temp"]--;
-            playersData[num][key]--;
-        } else if(playersData[num][key]>0){
-            playersData[num][key]--;
-        }
+    function decrementAction(num, key){
+        if(playersData[num][key] > 0) playersData[num][key]--;
     }
 
     function handleSingleClick(num,key){
@@ -309,194 +347,141 @@ th { background: #f0f0f0; }
     }
 
     function handleDoubleClick(num,key){
-        const cat=playerCategories[num-1];
-        const isPositive=actionsPositive.some(a=>a.key===key);
-        const isTF=key==="TF_neg";
-        if(isPositive && cat!=="Torhüter"){
-            playersData[num][key]++;
-            playersData[num][key+"_temp"]++; // Tempo-Tor
-        } else if(isTF){
-            // Tempo-TF (zählt nicht in Tempotore)
-            playersData[num][key]++;
-            playersData[num][key+"_temp"]++;
-        } else {
-            playersData[num][key]++;
-        }
+        playersData[num][key]++;
         updateAll();
     }
 
     function updateButtonText(btn,num,key){
-        const val=playersData[num][key]||0;
-        btn.textContent=`${getLabel(key)} (${val})`;
+        const val = playersData[num][key] || 0;
+        btn.textContent = `${getLabel(key)} (${val})`;
     }
 
     function getLabel(key){
         const a=[...actionsPositive,...actionsNegative].find(x=>x.key===key);
-        return a?a.label:key;
+        return a ? a.label : key;
     }
 
     function updateAll(){
-        document.querySelectorAll(".btn").forEach(btn=>{
-            const p=btn.dataset.player;
-            const k=btn.dataset.key;
-            updateButtonText(btn,parseInt(p),k);
+        document.querySelectorAll('.btn').forEach(btn=>{
+            const p = btn.dataset.player;
+            const k = btn.dataset.key;
+            if(p && k && playersData[p]){
+                updateButtonText(btn, parseInt(p), k);
+            }
         });
         updateTables();
     }
-
+})();
+</script>
+<script>
+(() => {
     function updateTables(){
         const buildTable=(id,header1,rows,extra="")=>{
-            const sepIndex=actionsPositive.length;
-            let headerRow=`<tr><th>${header1}</th>`;
-            actionsPositive.forEach(a=>headerRow+=`<th>${a.label}</th>`);
-            actionsNegative.forEach((a,i)=>headerRow+=`<th class="${i===0?"thick-separator":""}">${a.label}</th>`);
-            headerRow+=`<th>WQ</th><th>WQ inkl. TF</th>${extra}</tr>`;
+            let headerRow=`<tr><th>${header1}</th>`+
+                actionsPositive.map(a=>`<th>${a.label}</th>`).join("")+
+                actionsNegative.map((a,i)=>`<th class="${i===0?"thick-separator":""}">${a.label}</th>`).join("")+
+                `<th>WQ</th><th>WQ inkl. TF</th>${extra}</tr>`;
             return `<table id="${id}">${headerRow}${rows}</table>`;
         };
 
-        // Spielerstatistik
+        // ---- Spielerstatistik ----
         let playerRows="";
         let lastCat=null;
         Object.keys(playersData).forEach(num=>{
             const cat=playerCategories[num-1];
-            if(lastCat && lastCat!==cat)
+            if(lastCat && lastCat!==cat){
                 playerRows+=`<tr><td colspan="${actionsPositive.length+actionsNegative.length+3}"></td></tr>`;
+            }
             lastCat=cat;
 
-            const posSum=actionsPositive.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            const negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            const negSumAll=actionsNegative.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            const wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
-            const wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
+            let posSum=actionsPositive.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
+            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+(playersData[num][a.key]||0),0);
+            let negSumAll=actionsNegative.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
+            let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
+            let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
 
             let row=`<tr><td>${playerNames[num-1]}</td>`;
-            actionsPositive.forEach(a=>row+=`<td>${playersData[num][a.key]||0}</td>`);
+            actionsPositive.forEach(a=>{
+                const val = playersData[num][a.key] || 0;
+                row += `<td>${val}</td>`;
+            });
             actionsNegative.forEach((a,i)=>row+=`<td class="${i===0?"thick-separator":""}">${playersData[num][a.key]||0}</td>`);
             row+=`<td>${wq}</td><td>${wqTF}</td></tr>`;
             playerRows+=row;
         });
 
-        // Teamstatistik
-        const teamCats=["Rückraum","Außen","Kreis","Torhüter"];
+        // ---- Teamstatistik pro Kategorie ----
         let teamRows="";
-        let totalRow="";
-
-        const fieldCats=["Rückraum","Außen","Kreis"];
-        const fieldNums=Object.keys(playersData).filter(n=>fieldCats.includes(playerCategories[n-1]));
-
-        if(fieldNums.length>0){
-            let catSums={};
-            [...actionsPositive,...actionsNegative].forEach(a=>{
-                catSums[a.key]=fieldNums.reduce((s,n)=>s+(playersData[n][a.key]||0),0);
-            });
-            const posSum=actionsPositive.reduce((s,a)=>s+catSums[a.key],0);
-            const negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+catSums[a.key],0);
-            const negSumAll=actionsNegative.reduce((s,a)=>s+catSums[a.key],0);
-            const tempoSum=fieldNums.reduce((s,n)=>s+actionsPositive.reduce((t,a)=>t+(playersData[n][a.key+"_temp"]||0),0),0);
-            const wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
-            const wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
-            totalRow=`<tr><td><b>Gesamt (Feldspieler)</b></td>`+
-                actionsPositive.map(a=>`<td><b>${catSums[a.key]}</b></td>`).join("")+
-                actionsNegative.map((a,i)=>`<td class="${i===0?"thick-separator":""}"><b>${catSums[a.key]}</b></td>`).join("")+
-                `<td><b>${wq}</b></td><td><b>${wqTF}</b></td><td><b>${tempoSum}</b></td></tr>`;
-        }
-
-        teamCats.forEach(cat=>{
+        const teamCategories=["Rückraum","Außen","Kreis","Torhüter"];
+        teamCategories.forEach(cat=>{
             const nums=Object.keys(playersData).filter(n=>playerCategories[n-1]===cat);
-            if(nums.length===0)return;
+            if(nums.length===0) return;
+
             let catSums={};
             [...actionsPositive,...actionsNegative].forEach(a=>{
                 catSums[a.key]=nums.reduce((s,n)=>s+(playersData[n][a.key]||0),0);
             });
-            const posSum=actionsPositive.reduce((s,a)=>s+catSums[a.key],0);
-            const negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+catSums[a.key],0);
-            const negSumAll=actionsNegative.reduce((s,a)=>s+catSums[a.key],0);
-            const tempoSum=nums.reduce((s,n)=>s+actionsPositive.reduce((t,a)=>t+(playersData[n][a.key+"_temp"]||0),0),0);
-            const wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
-            const wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
-            teamRows+=`<tr><td>${cat}</td>`+
-                actionsPositive.map(a=>`<td>${catSums[a.key]}</td>`).join("")+
-                actionsNegative.map((a,i)=>`<td class="${i===0?"thick-separator":""}">${catSums[a.key]}</td>`).join("")+
-                `<td>${wq}</td><td>${wqTF}</td><td>${tempoSum}</td></tr>`;
+            let posSum=actionsPositive.reduce((s,a)=>s+catSums[a.key],0);
+            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+catSums[a.key],0);
+            let negSumAll=actionsNegative.reduce((s,a)=>s+catSums[a.key],0);
+            let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
+            let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
+
+            let row=`<tr><td>${cat}</td>`;
+            actionsPositive.forEach(a=>row+=`<td>${catSums[a.key]}</td>`);
+            actionsNegative.forEach((a,i)=>row+=`<td class="${i===0?"thick-separator":""}">${catSums[a.key]}</td>`);
+            row+=`<td>${wq}</td><td>${wqTF}</td></tr>`;
+            teamRows+=row;
         });
 
-        document.getElementById("playerStats").innerHTML=buildTable("playerTable","Spieler",playerRows);
-        document.getElementById("teamStats").innerHTML=buildTable("teamTable","Kategorie",totalRow+teamRows,"<th>Tempotore</th>");
+        document.getElementById("playerStats").innerHTML = buildTable("playerTable","Spieler",playerRows);
+        document.getElementById("teamStats").innerHTML = buildTable("teamTable","Kategorie",teamRows);
     }
+
     // ---- Export CSV ----
-    document.getElementById("playerExport").addEventListener("click",(e)=>{
-        if(e.target.dataset.export==="pdf"){
-            exportPDF("playerTable","Spieler_Statistik_"+currentOpponent+".pdf");
-            return;
-        }
+    document.getElementById("playerExport").addEventListener("click",()=>{
         let csv="Spieler,"+
             actionsPositive.map(a=>a.label).join(",")+","+
             actionsNegative.map(a=>a.label).join(",")+
-            ",WQ,WQ inkl. TF,Tempotore\n";
+            ",WQ,WQ inkl. TF\n";
         Object.keys(playersData).forEach(num=>{
-            const posSum=actionsPositive.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            const negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            const negSumAll=actionsNegative.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            const wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
-            const wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
-            const totalTempo=actionsPositive.reduce((t,a)=>t+(playersData[num][a.key+"_temp"]||0),0);
+            let posSum=actionsPositive.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
+            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+(playersData[num][a.key]||0),0);
+            let negSumAll=actionsNegative.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
+            let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
+            let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
             csv+=`${playerNames[num-1]},`+
                 actionsPositive.map(a=>playersData[num][a.key]||0).join(",")+","+
                 actionsNegative.map(a=>playersData[num][a.key]||0).join(",")+","+
-                `${wq},${wqTF},${totalTempo}\n`;
+                `${wq},${wqTF}\n`;
         });
-        downloadCSV(csv,"Spieler_Statistik_"+currentOpponent+".csv");
+        downloadCSV(csv,`Spieler_Statistik_${currentOpponent}.csv`);
     });
 
-    document.getElementById("teamExport").addEventListener("click",(e)=>{
-        if(e.target.dataset.export==="pdf"){
-            exportPDF("teamTable","Team_Statistik_"+currentOpponent+".pdf");
-            return;
-        }
-        const teamCats=["Rückraum","Außen","Kreis","Torhüter"];
+    document.getElementById("teamExport").addEventListener("click",()=>{
+        const teamCategories=["Rückraum","Außen","Kreis","Torhüter"];
         let csv="Kategorie,"+
             actionsPositive.map(a=>a.label).join(",")+","+
             actionsNegative.map(a=>a.label).join(",")+
-            ",WQ,WQ inkl. TF,Tempotore\n";
-
-        const fieldCats=["Rückraum","Außen","Kreis"];
-        const fieldNums=Object.keys(playersData).filter(n=>fieldCats.includes(playerCategories[n-1]));
-        if(fieldNums.length>0){
-            let catSums={};
-            [...actionsPositive,...actionsNegative].forEach(a=>{
-                catSums[a.key]=fieldNums.reduce((s,n)=>s+(playersData[n][a.key]||0),0);
-            });
-            const posSum=actionsPositive.reduce((s,a)=>s+catSums[a.key],0);
-            const negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+catSums[a.key],0);
-            const negSumAll=actionsNegative.reduce((s,a)=>s+catSums[a.key],0);
-            const tempoSum=fieldNums.reduce((s,n)=>s+actionsPositive.reduce((t,a)=>t+(playersData[n][a.key+"_temp"]||0),0),0);
-            const wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
-            const wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
-            csv+=`Gesamt (Feldspieler),`+
-                actionsPositive.map(a=>catSums[a.key]).join(",")+","+
-                actionsNegative.map(a=>catSums[a.key]).join(",")+","+
-                `${wq},${wqTF},${tempoSum}\n`;
-        }
-
-        teamCats.forEach(cat=>{
+            ",WQ,WQ inkl. TF\n";
+        teamCategories.forEach(cat=>{
             const nums=Object.keys(playersData).filter(n=>playerCategories[n-1]===cat);
-            if(nums.length===0)return;
+            if(nums.length===0) return;
             let catSums={};
             [...actionsPositive,...actionsNegative].forEach(a=>{
                 catSums[a.key]=nums.reduce((s,n)=>s+(playersData[n][a.key]||0),0);
             });
-            const posSum=actionsPositive.reduce((s,a)=>s+catSums[a.key],0);
-            const negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+catSums[a.key],0);
-            const negSumAll=actionsNegative.reduce((s,a)=>s+catSums[a.key],0);
-            const tempoSum=nums.reduce((s,n)=>s+actionsPositive.reduce((t,a)=>t+(playersData[n][a.key+"_temp"]||0),0),0);
-            const wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
-            const wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
+            let posSum=actionsPositive.reduce((s,a)=>s+catSums[a.key],0);
+            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+catSums[a.key],0);
+            let negSumAll=actionsNegative.reduce((s,a)=>s+catSums[a.key],0);
+            let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
+            let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
             csv+=`${cat},`+
                 actionsPositive.map(a=>catSums[a.key]).join(",")+","+
                 actionsNegative.map(a=>catSums[a.key]).join(",")+","+
-                `${wq},${wqTF},${tempoSum}\n`;
+                `${wq},${wqTF}\n`;
         });
-        downloadCSV(csv,"Team_Statistik_"+currentOpponent+".csv");
+        downloadCSV(csv,`Team_Statistik_${currentOpponent}.csv`);
     });
 
     function downloadCSV(content,filename){
@@ -507,36 +492,5 @@ th { background: #f0f0f0; }
         a.click();
         URL.revokeObjectURL(url);
     }
-
-    // ---- PDF Export ----
-    function exportPDF(tableId,filename){
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({orientation:"landscape"});
-        doc.setFontSize(10);
-        const table = document.getElementById(tableId);
-        const columns=[];
-        const rows=[];
-        table.querySelectorAll("thead tr th").forEach(th=>columns.push({header:th.textContent,dataKey:th.textContent}));
-        table.querySelectorAll("tbody tr").forEach(tr=>{
-            const row={};
-            tr.querySelectorAll("td").forEach((td,i)=>row[columns[i].dataKey]=td.textContent);
-            rows.push(row);
-        });
-        doc.autoTable({
-            head:[columns.map(c=>c.header)],
-            body:rows.map(r=>columns.map(c=>r[c.header])),
-            styles:{cellPadding:2,fontSize:10},
-            headStyles:{fillColor:[240,240,240]},
-            columnStyles:{"WQ":{halign:"center"}, "WQ inkl. TF":{halign:"center"}},
-            didDrawCell:(data)=>{
-                if(data.section==="body" && data.column.index===actionsPositive.length){
-                    const {cell} = data;
-                    doc.setDrawColor(0);
-                    doc.setLineWidth(0.7);
-                    doc.line(cell.x,cell.y,cell.x,cell.y+cell.height);
-                }
-            }
-        });
-        doc.save(filename);
-    }
 })();
+</script>
