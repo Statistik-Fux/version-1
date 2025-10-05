@@ -17,8 +17,8 @@ body::before, body::after {
     background-size: contain; opacity: 0.15; filter: blur(0.5px);
     z-index: -1; pointer-events: none;
 }
-body::before { left: 15%; background-image: url('logo.png.JPG'); }
-body::after { right: 15%; background-image: url('logo.png.JPG'); }
+body::before { left: 15%; background-image: url('logo.png'); }
+body::after { right: 15%; background-image: url('logo.png'); }
 h1, h2 { text-align: center; margin-bottom: 15px; }
 #setup { background: rgba(255, 255, 255, 0.6); padding: 20px; border-radius: 12px;
     max-width: 500px; margin: 30px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -70,7 +70,7 @@ th { background: #f0f0f0; }
 </style>
 </head>
 <body>
-    <main id="setup">
+<main id="setup">
 <h1>Willkommen!</h1>
 <input type="text" id="opponent" placeholder="Gegner eingeben">
 <select id="teamSelect">
@@ -109,12 +109,50 @@ th { background: #f0f0f0; }
 </div>
 <div id="teamStats"></div>
 
-<!-- Bibliotheken für Export -->
+<!-- Bibliotheken -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
 (() => {
+    // --- Globale Variablen ---
+    window.playersData = {};
+    window.currentOpponent = "";
+    window.playerNames = [];
+    window.playerCategories = [];
+    window.actionsPositive = [
+        {key:"KM_pos",label:"KM"},
+        {key:"DBR_pos",label:"DBR"},
+        {key:"AUSSEN_pos",label:"Außen"},
+        {key:"NAH_pos",label:"NAH"},
+        {key:"FERN_pos",label:"FERN"},
+        {key:"TGS_pos",label:"TGS"},
+        {key:"LT_pos",label:"Leeres"},
+        {key:"7M_pos",label:"7M"}
+    ];
+    window.actionsNegative = [
+        {key:"KM_neg",label:"KM"},
+        {key:"DBR_neg",label:"DBR"},
+        {key:"AUSSEN_neg",label:"Außen"},
+        {key:"NAH_neg",label:"NAH"},
+        {key:"FERN_neg",label:"FERN"},
+        {key:"TGS_neg",label:"TGS"},
+        {key:"LT_neg",label:"Leeres"},
+        {key:"7M_neg",label:"7M"},
+        {key:"TF_neg",label:"TF"}
+    ];
+
+    // --- Teams & Kategorien ---
+    const teams = {
+        Fux2: ["Julian Kusche","Gabriel Kofler","Lauro Pichiri","Felix Bernkop-Schnürch","Rune Laskowski","Lucas Mohr","Navi Yatawarage","William Reichardt","Justin Wollny","Jan Grüner","Dominik Kupiec","Lennart Steltner","Luca Thiel","Tim Schröder","Jonas Kofler","Till Braren","Pius Joppich","Norman Glamann"],
+        FuxA: ["Leo Nowak","Simon Poppe","Fritz Parke","Fynn Paulicks","Filip Dominikovic","Leo Tautenhahn","Antonio D'Incecco","Noah Skei","Simon Sirot","Albert Schmidt","Gabor Zeuch","Christopher Losch","Davide Babini","Tillman Stark","Henning Lahuis","Ole Krake","Matteo Agistonelli"]
+    };
+    const categories = {
+        Fux2: [...Array(8).fill("Rückraum"), ...Array(5).fill("Außen"), ...Array(3).fill("Kreis"), ...Array(2).fill("Torhüter")],
+        FuxA: [...Array(8).fill("Rückraum"), ...Array(4).fill("Außen"), ...Array(2).fill("Kreis"), ...Array(3).fill("Torhüter")]
+    };
+
+    // --- DOM-Elemente ---
     const col1 = document.getElementById("col1");
     const col2 = document.getElementById("col2");
     const startBtn = document.getElementById("startBtn");
@@ -123,39 +161,27 @@ th { background: #f0f0f0; }
     const newPlayerNameInput = document.getElementById("newPlayerName");
     const newPlayerCategorySelect = document.getElementById("newPlayerCategory");
 
-    let currentOpponent = "";
-    window.playersData = {}; // global
-
-    const teams = {
-        Fux2: ["Julian Kusche","Gabriel Kofler","Lauro Pichiri","Felix Bernkop-Schnürch","Rune Laskowski","Lucas Mohr","Navi Yatawarage","William Reichardt","Justin Wollny","Jan Grüner","Dominik Kupiec","Lennart Steltner","Luca Thiel","Tim Schröder","Jonas Kofler","Till Braren","Pius Joppich","Norman Glamann"],
-        FuxA: ["Leo Nowak","Simon Poppe","Fritz Parke","Fynn Paulicks","Filip Dominikovic","Leo Tautenhahn","Antonio D'Incecco","Noah Skei","Simon Sirot","Albert Schmidt","Gabor Zeuch","Christopher Losch","Davide Babini","Tillman Stark","Henning Lahuis","Ole Krake","Matteo Agistonelli"]
-    };
-
-    const categories = {
-        Fux2: [...Array(8).fill("Rückraum"), ...Array(5).fill("Außen"), ...Array(3).fill("Kreis"), ...Array(2).fill("Torhüter")],
-        FuxA: [...Array(8).fill("Rückraum"), ...Array(4).fill("Außen"), ...Array(2).fill("Kreis"), ...Array(3).fill("Torhüter")]
-    };
-
-    let playerNames = [...teams.Fux2];
-    let playerCategories = [...categories.Fux2];
+    // --- Initialisierung ---
+    window.playerNames = [...teams.Fux2];
+    window.playerCategories = [...categories.Fux2];
 
     const renderPlayerCheckboxes = () => {
         col1.innerHTML = "";
         col2.innerHTML = "";
-        playerNames.forEach((name, i) => {
+        window.playerNames.forEach((name, i) => {
             const label = document.createElement("label");
             const checkbox = document.createElement("input");
             checkbox.type = "checkbox";
             checkbox.value = i + 1;
             label.appendChild(checkbox);
             label.appendChild(document.createTextNode(` ${name}`));
-            (i < Math.ceil(playerNames.length / 2) ? col1 : col2).appendChild(label);
+            (i < Math.ceil(window.playerNames.length / 2) ? col1 : col2).appendChild(label);
         });
     };
 
     teamSelect.addEventListener("change", () => {
-        playerNames = [...teams[teamSelect.value]];
-        playerCategories = [...categories[teamSelect.value]];
+        window.playerNames = [...teams[teamSelect.value]];
+        window.playerCategories = [...categories[teamSelect.value]];
         renderPlayerCheckboxes();
     });
 
@@ -163,10 +189,10 @@ th { background: #f0f0f0; }
         const name = newPlayerNameInput.value.trim();
         const cat = newPlayerCategorySelect.value;
         if (!name) return;
-        let insertIndex = playerCategories.findLastIndex(c => c === cat);
-        insertIndex = insertIndex === -1 ? playerCategories.length : insertIndex + 1;
-        playerNames.splice(insertIndex, 0, name);
-        playerCategories.splice(insertIndex, 0, cat);
+        let insertIndex = window.playerCategories.findLastIndex(c => c === cat);
+        insertIndex = insertIndex === -1 ? window.playerCategories.length : insertIndex + 1;
+        window.playerNames.splice(insertIndex, 0, name);
+        window.playerCategories.splice(insertIndex, 0, cat);
         renderPlayerCheckboxes();
         newPlayerNameInput.value = "";
     });
@@ -179,46 +205,19 @@ th { background: #f0f0f0; }
             alert("Bitte korrigieren:\n- Gegner eingeben\n- Mindestens 7 Spieler auswählen");
             return;
         }
-        currentOpponent = opponent;
+        window.currentOpponent = opponent;
         window.startGame(opponent, selected);
     };
 
     startBtn.addEventListener("click", validateAndStart);
     window.renderPlayerCheckboxes = renderPlayerCheckboxes;
-
-    window.addEventListener("load", () => {
-        renderPlayerCheckboxes();
-    });
+    window.addEventListener("load", () => renderPlayerCheckboxes());
 })();
 </script>
 <script>
 (() => {
     const playersDiv = document.getElementById("players");
     const headline = document.getElementById("headline");
-
-    const actionsPositive = [
-        {key:"KM_pos",label:"KM"},
-        {key:"DBR_pos",label:"DBR"},
-        {key:"AUSSEN_pos",label:"Außen"},
-        {key:"NAH_pos",label:"NAH"},
-        {key:"FERN_pos",label:"FERN"},
-        {key:"TGS_pos",label:"TGS"},
-        {key:"LT_pos",label:"Leeres"},
-        {key:"7M_pos",label:"7M"}
-    ];
-    const actionsNegative = [
-        {key:"KM_neg",label:"KM"},
-        {key:"DBR_neg",label:"DBR"},
-        {key:"AUSSEN_neg",label:"Außen"},
-        {key:"NAH_neg",label:"NAH"},
-        {key:"FERN_neg",label:"FERN"},
-        {key:"TGS_neg",label:"TGS"},
-        {key:"LT_neg",label:"Leeres"},
-        {key:"7M_neg",label:"7M"},
-        {key:"TF_neg",label:"TF"}
-    ];
-
-    let pressTimer, longPressActive, activeTouch;
 
     function startGame(opponent, selectedPlayers) {
         headline.innerText = `Statistik vs ${opponent}`;
@@ -230,29 +229,30 @@ th { background: #f0f0f0; }
 
         selectedPlayers.forEach(num => {
             window.playersData[num] = {};
-            [...actionsPositive, ...actionsNegative].forEach(a => {
+            [...window.actionsPositive, ...window.actionsNegative].forEach(a => {
                 window.playersData[num][a.key] = 0;
                 window.playersData[num][a.key + "_temp"] = 0;
             });
 
             const card = document.createElement("div");
             card.className = "player-card";
+
             const nameDiv = document.createElement("div");
             nameDiv.className = "player-name";
             nameDiv.textContent = window.playerNames[num-1];
             card.appendChild(nameDiv);
 
-            [...actionsPositive, ...actionsNegative].forEach((a, idx) => {
+            [...window.actionsPositive, ...window.actionsNegative].forEach((a, idx) => {
                 const btn = document.createElement("button");
-                btn.className = `btn ${idx < actionsPositive.length ? "positive" : "negative"}`;
-                if (a.key.startsWith("TF") && idx >= actionsPositive.length) btn.classList.add("full-width");
+                btn.className = `btn ${idx < window.actionsPositive.length ? "positive" : "negative"}`;
+                if (a.key.startsWith("TF") && idx >= window.actionsPositive.length) btn.classList.add("full-width");
                 btn.textContent = `${a.label} (0)`;
 
                 const isFieldPlayer = window.playerCategories[num-1] !== "Torhüter";
-                const canAddTempo = (idx < actionsPositive.length || a.key === "TF_neg") && isFieldPlayer;
+                const canAddTempo = (idx < window.actionsPositive.length || a.key === "TF_neg") && isFieldPlayer;
 
-                let clickTimer = null;
-                longPressActive = false;
+                let pressTimer = null;
+                let longPressActive = false;
                 let dblClickActive = false;
 
                 const startPress = () => {
@@ -268,19 +268,14 @@ th { background: #f0f0f0; }
                 const endPress = () => {
                     clearTimeout(pressTimer);
                     if (!longPressActive && !dblClickActive) {
-                        if (clickTimer) clearTimeout(clickTimer);
-                        clickTimer = setTimeout(() => {
-                            window.playersData[num][a.key]++;
-                            btn.textContent = formatBtnText(num, a);
-                            updateTables();
-                            clickTimer = null;
-                        }, 250);
+                        window.playersData[num][a.key]++;
+                        btn.textContent = formatBtnText(num, a);
+                        updateTables();
                     }
                 };
 
-                btn.addEventListener("dblclick", e => {
+                btn.addEventListener("dblclick", () => {
                     dblClickActive = true;
-                    if (clickTimer) clearTimeout(clickTimer);
                     if (canAddTempo) {
                         window.playersData[num][a.key]++;
                         window.playersData[num][a.key + "_temp"]++;
@@ -290,16 +285,16 @@ th { background: #f0f0f0; }
                     setTimeout(() => dblClickActive = false, 300);
                 });
 
-                btn.addEventListener("mousedown", e => { if (!activeTouch) startPress(); });
-                btn.addEventListener("mouseup", e => { if (!activeTouch) endPress(); });
+                btn.addEventListener("mousedown", startPress);
+                btn.addEventListener("mouseup", endPress);
                 btn.addEventListener("mouseleave", () => clearTimeout(pressTimer));
-                btn.addEventListener("touchstart", e => { activeTouch = true; startPress(); e.preventDefault(); });
-                btn.addEventListener("touchend", e => { endPress(); setTimeout(() => activeTouch=false,300); e.preventDefault(); });
+                btn.addEventListener("touchstart", e => { startPress(); e.preventDefault(); });
+                btn.addEventListener("touchend", e => { endPress(); e.preventDefault(); });
                 btn.addEventListener("touchcancel", () => clearTimeout(pressTimer));
 
                 card.appendChild(btn);
 
-                if (idx === actionsPositive.length - 1) {
+                if (idx === window.actionsPositive.length - 1) {
                     const sep = document.createElement("div");
                     sep.style.borderBottom = "3px solid black";
                     sep.style.margin = "5px 0";
@@ -327,35 +322,35 @@ function updateTables() {
     const buildTable = (id, header1, rows) => {
         let extraHeaders = id === "teamTable" ? "<th>Tempotore</th><th>TW</th>" : "";
         let headerRow = `<tr><th>${header1}</th>` +
-            actionsPositive.map(a => `<th>${a.label}</th>`).join("") +
-            actionsNegative.map((a,i) => `<th class="${i===0 ? "thick-separator" : ""}">${a.label}</th>`).join("") +
+            window.actionsPositive.map(a => `<th>${a.label}</th>`).join("") +
+            window.actionsNegative.map((a,i) => `<th class="${i===0 ? "thick-separator" : ""}">${a.label}</th>`).join("") +
             `<th>WQ</th><th>WQ inkl. TF</th>` + extraHeaders + `</tr>`;
         return `<table id="${id}">${headerRow}${rows}</table>`;
     };
 
-    // ---- Spielerstatistik ----
+    // --- Spielerstatistik ---
     let playerRows = "";
     let lastCategory = null;
-    Object.keys(playersData).forEach(num => {
-        const cat = playerCategories[num-1];
+    Object.keys(window.playersData).forEach(num => {
+        const cat = window.playerCategories[num-1];
         if (lastCategory && lastCategory !== cat) {
-            playerRows += `<tr><td colspan="${actionsPositive.length + actionsNegative.length + 3 + 2}"></td></tr>`;
+            playerRows += `<tr><td colspan="${window.actionsPositive.length + window.actionsNegative.length + 3 + 2}"></td></tr>`;
         }
         lastCategory = cat;
 
-        const posSum = actionsPositive.reduce((s,a)=>s+playersData[num][a.key],0);
-        const negSumExTF = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+playersData[num][a.key],0);
-        const negSum = actionsNegative.reduce((s,a)=>s+playersData[num][a.key],0);
+        const posSum = window.actionsPositive.reduce((s,a)=>s+window.playersData[num][a.key],0);
+        const negSumExTF = window.actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+window.playersData[num][a.key],0);
+        const negSum = window.actionsNegative.reduce((s,a)=>s+window.playersData[num][a.key],0);
 
-        playerRows += `<tr><td>${playerNames[num-1]}</td>` +
-            actionsPositive.map(a => {
-                const v = playersData[num][a.key];
-                const t = playersData[num][a.key + "_temp"];
+        playerRows += `<tr><td>${window.playerNames[num-1]}</td>` +
+            window.actionsPositive.map(a => {
+                const v = window.playersData[num][a.key];
+                const t = window.playersData[num][a.key + "_temp"];
                 return `<td>${v}${t>0?` (${t})`:""}</td>`;
             }).join("") +
-            actionsNegative.map((a,i) => {
-                const v = playersData[num][a.key];
-                const t = playersData[num][a.key + "_temp"];
+            window.actionsNegative.map((a,i) => {
+                const v = window.playersData[num][a.key];
+                const t = window.playersData[num][a.key + "_temp"];
                 return `<td class="${i===0 ? "thick-separator" : ""}">${v}${(a.key==="TF_neg" && t>0)?` (${t})`:""}</td>`;
             }).join("") +
             `<td>${posSum+negSumExTF>0 ? (posSum/(posSum+negSumExTF)*100).toFixed(1)+"%" : "-"}</td>` +
@@ -363,19 +358,19 @@ function updateTables() {
     });
     document.getElementById("playerStats").innerHTML = buildTable("playerTable", "Spieler", playerRows);
 
-    // ---- Teamstatistik ----
-    const fieldPlayers = Object.keys(playersData).filter(n => playerCategories[n-1] !== "Torhüter");
-    const goalkeepers = Object.keys(playersData).filter(n => playerCategories[n-1] === "Torhüter");
+    // --- Teamstatistik ---
+    const fieldPlayers = Object.keys(window.playersData).filter(n => window.playerCategories[n-1] !== "Torhüter");
+    const goalkeepers = Object.keys(window.playersData).filter(n => window.playerCategories[n-1] === "Torhüter");
 
-    const sumField = (key) => fieldPlayers.reduce((s,n)=>s+playersData[n][key],0);
-    const sumGK = (key) => goalkeepers.reduce((s,n)=>s+playersData[n][key],0);
+    const sumField = (key) => fieldPlayers.reduce((s,n)=>s+window.playersData[n][key],0);
+    const sumGK = (key) => goalkeepers.reduce((s,n)=>s+window.playersData[n][key],0);
 
     const teamRow = `<tr><td>Gesamt</td>` +
-        actionsPositive.map(a=>`<td>${sumField(a.key)}</td>`).join("") +
-        actionsNegative.map((a,i)=>`<td class="${i===0?"thick-separator":""}">${sumField(a.key)}</td>`).join("") +
+        window.actionsPositive.map(a=>`<td>${sumField(a.key)}</td>`).join("") +
+        window.actionsNegative.map((a,i)=>`<td class="${i===0?"thick-separator":""}">${sumField(a.key)}</td>`).join("") +
         `<td>${sumField("KM_pos")/ (sumField("KM_pos")+sumField("KM_neg"))*100 || "-"}%</td>` +
         `<td>${sumField("KM_pos")/ (sumField("KM_pos")+sumField("KM_neg")+sumField("TF_neg"))*100 || "-"}%</td>` +
-        `<td>${actionsPositive.reduce((s,a)=>s+sumField(a.key+"_temp"),0)+sumField("TF_neg_temp")}</td>` +
+        `<td>${window.actionsPositive.reduce((s,a)=>s+sumField(a.key+"_temp"),0)+sumField("TF_neg_temp")}</td>` +
         `<td>${Math.round(sumGK("KM_pos")/ (sumGK("KM_pos")+sumGK("KM_neg"))*100) || "-"}%</td></tr>`;
 
     document.getElementById("teamStats").innerHTML = buildTable("teamTable", "Team", teamRow);
@@ -386,7 +381,7 @@ function exportTableToExcel(tableID) {
     const table = document.getElementById(tableID);
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.table_to_sheet(table, {raw: true});
-    XLSX.utils.sheet_add_aoa(ws, [[`Statistik vs ${currentOpponent}`]], {origin: "A1"});
+    XLSX.utils.sheet_add_aoa(ws, [[`Statistik vs ${window.currentOpponent}`]], {origin: "A1"});
     ws['!cols'] = Array(table.rows[0].cells.length).fill({wch: 12});
     XLSX.utils.book_append_sheet(wb, ws, "Stats");
     XLSX.writeFile(wb, `${tableID}.xlsx`);
@@ -396,7 +391,7 @@ function exportTableToPDF(tableID) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({orientation: 'landscape', unit: 'mm', format: 'a4'});
     doc.setFontSize(16);
-    doc.text(`Statistik vs ${currentOpponent}`, 14, 15);
+    doc.text(`Statistik vs ${window.currentOpponent}`, 14, 15);
     doc.autoTable({
         html: `#${tableID}`,
         startY: 20,
@@ -407,7 +402,7 @@ function exportTableToPDF(tableID) {
     doc.save(`${tableID}.pdf`);
 }
 
-// Export-Buttons
+// ---- Export-Buttons ----
 document.querySelectorAll("button[data-export]").forEach(btn => {
     btn.addEventListener("click", e => {
         const type = e.target.getAttribute("data-export");
@@ -417,10 +412,3 @@ document.querySelectorAll("button[data-export]").forEach(btn => {
     });
 });
 </script>
-
-<!-- Bibliotheken am Ende des Body einfügen -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-</body>
-</html>
