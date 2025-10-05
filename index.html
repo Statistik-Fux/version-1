@@ -269,16 +269,38 @@ th { background: #f0f0f0; }
                     }
                 };
 
-                // Doppelklick für Tempotor — normale Klickzählung wird unterdrückt
-                btn.addEventListener("dblclick", e => {
-                    if (clickTimer) clearTimeout(clickTimer);
-                    if (canAddTempo) {
-                        playersData[num][a.key]++;
-                        playersData[num][a.key + "_temp"]++;
-                        btn.textContent = formatBtnText(num, a);
-                        updateTables();
-                    }
-                });
+                let clickTimer = null;
+let dblClickActive = false;
+
+const endPress = () => {
+    clearTimeout(pressTimer);
+    if (!longPressActive && !dblClickActive) {
+        // Verzögert normalen Klick, um Doppelklick-Erkennung zu ermöglichen
+        if (clickTimer) clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+            playersData[num][a.key]++;
+            btn.textContent = formatBtnText(num, a);
+            updateTables();
+            clickTimer = null;
+        }, 250);
+    }
+};
+
+btn.addEventListener("dblclick", e => {
+    // Markiert, dass jetzt ein Doppelklick aktiv ist → verhindert den normalen Klick
+    dblClickActive = true;
+    if (clickTimer) clearTimeout(clickTimer); // Abbrechen des einfachen Klicks
+
+    if (canAddTempo) {
+        playersData[num][a.key]++;
+        playersData[num][a.key + "_temp"]++;
+        btn.textContent = formatBtnText(num, a);
+        updateTables();
+    }
+
+    // Nach kurzer Zeit wieder freigeben, sonst blockiert alles weitere
+    setTimeout(() => dblClickActive = false, 300);
+});
 
                 btn.addEventListener("mousedown", e => { if (!activeTouch) startPress(); });
                 btn.addEventListener("mouseup", e => { if (!activeTouch) endPress(); });
