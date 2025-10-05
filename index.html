@@ -325,6 +325,62 @@ th { background: #f0f0f0; }
 <script>
 function updateTables() {
     // ... Tabellenlogik wie in vorherigem Teil ...
+function updateTables() {
+    const buildTable = (id, header1, rows) => {
+        let extraHeaders = id === "teamTable" ? "<th>Tempotore</th><th>TW</th>" : "";
+        let headerRow = `<tr><th>${header1}</th>` +
+            actionsPositive.map(a => `<th>${a.label}</th>`).join("") +
+            actionsNegative.map((a,i) => `<th class="${i===0 ? "thick-separator" : ""}">${a.label}</th>`).join("") +
+            `<th>WQ</th><th>WQ inkl. TF</th>` + extraHeaders + `</tr>`;
+        return `<table id="${id}">${headerRow}${rows}</table>`;
+    };
+
+    // ---- Spielerstatistik ----
+    let playerRows = "";
+    let lastCategory = null;
+    Object.keys(playersData).forEach(num => {
+        const cat = playerCategories[num-1];
+        if (lastCategory && lastCategory !== cat) {
+            playerRows += `<tr><td colspan="${actionsPositive.length + actionsNegative.length + 3 + 2}"></td></tr>`;
+        }
+        lastCategory = cat;
+
+        const posSum = actionsPositive.reduce((s,a)=>s+playersData[num][a.key],0);
+        const negSumExTF = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+playersData[num][a.key],0);
+        const negSum = actionsNegative.reduce((s,a)=>s+playersData[num][a.key],0);
+
+        playerRows += `<tr><td>${playerNames[num-1]}</td>` +
+            actionsPositive.map(a => {
+                const v = playersData[num][a.key];
+                const t = playersData[num][a.key + "_temp"];
+                return `<td>${v}${t>0?` (${t})`:""}</td>`;
+            }).join("") +
+            actionsNegative.map((a,i) => {
+                const v = playersData[num][a.key];
+                const t = playersData[num][a.key + "_temp"];
+                return `<td class="${i===0 ? "thick-separator" : ""}">${v}${(a.key==="TF_neg" && t>0)?` (${t})`:""}</td>`;
+            }).join("") +
+            `<td>${posSum+negSumExTF>0 ? (posSum/(posSum+negSumExTF)*100).toFixed(1)+"%" : "-"}</td>` +
+            `<td>${posSum+negSum>0 ? (posSum/(posSum+negSum)*100).toFixed(1)+"%" : "-"}</td></tr>`;
+    });
+    document.getElementById("playerStats").innerHTML = buildTable("playerTable", "Spieler", playerRows);
+
+    // ---- Teamstatistik ----
+    const fieldPlayers = Object.keys(playersData).filter(n => playerCategories[n-1] !== "Torhüter");
+    const goalkeepers = Object.keys(playersData).filter(n => playerCategories[n-1] === "Torhüter");
+
+    const sumField = (key) => fieldPlayers.reduce((s,n)=>s+playersData[n][key],0);
+    const sumGK = (key) => goalkeepers.reduce((s,n)=>s+playersData[n][key],0);
+
+    const teamRow = `<tr><td>Gesamt</td>` +
+        actionsPositive.map(a=>`<td>${sumField(a.key)}</td>`).join("") +
+        actionsNegative.map((a,i)=>`<td class="${i===0?"thick-separator":""}">${sumField(a.key)}</td>`).join("") +
+        `<td>${sumField("KM_pos")/ (sumField("KM_pos")+sumField("KM_neg"))*100 || "-"}%</td>` +
+        `<td>${sumField("KM_pos")/ (sumField("KM_pos")+sumField("KM_neg")+sumField("TF_neg"))*100 || "-"}%</td>` +
+        `<td>${actionsPositive.reduce((s,a)=>s+sumField(a.key+"_temp"),0)+sumField("TF_neg_temp")}</td>` +
+        `<td>${Math.round(sumGK("KM_pos")/ (sumGK("KM_pos")+sumGK("KM_neg"))*100) || "-"}%</td></tr>`;
+
+    document.getElementById("teamStats").innerHTML = buildTable("teamTable", "Team", teamRow);
 }
 
 // ---- Exportfunktionen ----
