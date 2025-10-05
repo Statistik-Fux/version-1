@@ -192,8 +192,11 @@ th { background: #f0f0f0; }
     let playersData = {};
 
     window.addEventListener("load", () => {
-        document.styleSheets[0].cssRules[1].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
-        document.styleSheets[0].cssRules[2].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
+        // optional: cache-bust logo
+        try {
+            document.styleSheets[0].cssRules[1].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
+            document.styleSheets[0].cssRules[2].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
+        } catch(e){}
         renderPlayerCheckboxes();
     });
 
@@ -251,11 +254,15 @@ th { background: #f0f0f0; }
         playersDiv.innerHTML="";
 
         selectedPlayers.forEach(num=>{
+            // initialize per-player per-action counters, including per-action temp counters for positives
             playersData[num]={};
-            [...actionsPositive,...actionsNegative].forEach(a=>{
+            [...actionsPositive].forEach(a=>{
+                playersData[num][a.key]=0;
+                playersData[num][a.key+"_temp"]=0; // per-action Tempotore
+            });
+            [...actionsNegative].forEach(a=>{
                 playersData[num][a.key]=0;
             });
-            playersData[num]["Tempotore"]=0;
 
             const card=document.createElement("div");
             card.className="player-card";
@@ -263,56 +270,73 @@ th { background: #f0f0f0; }
             nameDiv.className="player-name";
             nameDiv.textContent=playerNames[num-1];
             card.appendChild(nameDiv);
+
+            // create buttons
             [...actionsPositive,...actionsNegative].forEach((a,idx)=>{
                 const btn=document.createElement("button");
                 btn.className=`btn ${idx<actionsPositive.length?"positive":"negative"}`;
                 if(a.key==="TF_neg") btn.classList.add("full-width");
 
+                // dataset so we can update later
+                btn.dataset.player = num;
+                btn.dataset.key = a.key;
+
                 updateButtonText(btn,num,a.key);
 
-                let clickTimer=null;
-                let pressTimer=null;
-                let touchActive=false;
+                // timers/flags per-button
+                let clickTimer = null;
+                let pressTimer = null;
+                let longPressTriggered = false;
 
-                // --- Desktop: langer Klick = Korrektur ---
-                btn.addEventListener("mousedown",()=>{
-                    pressTimer=setTimeout(()=>{
-                        if(playersData[num][a.key]>0){
-                            playersData[num][a.key]--;
-                            updateTables();
-                        }
-                    },600);
-                });
-                btn.addEventListener("mouseup",()=>clearTimeout(pressTimer));
-                btn.addEventListener("mouseleave",()=>clearTimeout(pressTimer));
-
-                // --- Touch: langer Druck = Korrektur ---
-                btn.addEventListener("touchstart",e=>{
-                    touchActive=true;
-                    pressTimer=setTimeout(()=>{
-                        if(playersData[num][a.key]>0){
-                            playersData[num][a.key]--;
-                            updateTables();
-                        }
-                    },600);
-                });
-                btn.addEventListener("touchend",()=>{
+                // --- Long press (pointer + touch + mouse) for correction ---
+                // Use pointer events if available, otherwise fallback to mouse/touch
+                const startPress = (e) => {
+                    longPressTriggered = false;
+                    pressTimer = setTimeout(()=>{
+                        longPressTriggered = true;
+                        // perform correction (decrement)
+                        decrementAction(num, a.key);
+                        updateAll(); // update buttons & tables
+                    }, 600);
+                };
+                const cancelPress = () => {
                     clearTimeout(pressTimer);
-                    setTimeout(()=>touchActive=false,100);
-                });
+                };
 
-                // --- Klick & Doppelklick ---
-                btn.addEventListener("click",()=>{
-                    if(touchActive) return; // Touch already handled
+                // Pointer events unify mouse/touch on modern browsers
+                if(window.PointerEvent){
+                    btn.addEventListener("pointerdown", startPress);
+                    btn.addEventListener("pointerup", cancelPress);
+                    btn.addEventListener("pointercancel", cancelPress);
+                    btn.addEventListener("pointerleave", cancelPress);
+                } else {
+                    btn.addEventListener("mousedown", startPress);
+                    btn.addEventListener("mouseup", cancelPress);
+                    btn.addEventListener("mouseleave", cancelPress);
+                    btn.addEventListener("touchstart", (e)=>{ startPress(); }, {passive:true});
+                    btn.addEventListener("touchend", cancelPress);
+                    btn.addEventListener("touchcancel", cancelPress);
+                }
+
+                // --- Click & double-click handling (timeout-based) ---
+                btn.addEventListener("click",(e)=>{
+                    // if longPress happened we must ignore this click to avoid undo/redo
+                    if(longPressTriggered){
+                        // reset flag and skip
+                        longPressTriggered = false;
+                        return;
+                    }
                     if(clickTimer==null){
-                        clickTimer=setTimeout(()=>{
-                            handleSingleClick(num,a.key);
-                            clickTimer=null;
+                        clickTimer = setTimeout(()=>{
+                            // single click
+                            handleSingleClick(num, a.key);
+                            clickTimer = null;
                         },250);
-                    }else{
+                    } else {
+                        // double click detected
                         clearTimeout(clickTimer);
-                        clickTimer=null;
-                        handleDoubleClick(num,a.key);
+                        clickTimer = null;
+                        handleDoubleClick(num, a.key);
                     }
                 });
 
@@ -324,38 +348,88 @@ th { background: #f0f0f0; }
                     card.appendChild(sep);
                 }
             });
+
             playersDiv.appendChild(card);
         });
-        updateTables();
+
+        updateAll();
+    }
+
+    // decrement helper used by long-press correction
+    function decrementAction(num, key){
+        // prefer to decrement temp if exists (for positive field actions), otherwise decrement total
+        const isPositive = actionsPositive.some(a=>a.key===key);
+        const isFieldPlayer = playerCategories[num-1] !== "Torhüter";
+        if(isPositive && isFieldPlayer){
+            const tempKey = key + "_temp";
+            if(playersData[num][tempKey] > 0){
+                // reduce temp and total
+                playersData[num][tempKey]--;
+                if(playersData[num][key] > 0) playersData[num][key]--;
+                return;
+            }
+            // no temp left -> reduce normal if possible
+            if(playersData[num][key] > 0){
+                playersData[num][key]--;
+                return;
+            }
+        } else {
+            // negative actions or torhüter: just decrement if >0
+            if(playersData[num][key] > 0) playersData[num][key]--;
+        }
     }
 
     function handleSingleClick(num,key){
+        // single click: always increment the action count by 1
         playersData[num][key]++;
-        updateTables();
+        updateAll();
     }
 
     function handleDoubleClick(num,key){
-        const cat=playerCategories[num-1];
+        const cat = playerCategories[num-1];
         if(actionsPositive.some(a=>a.key===key) && cat!=="Torhüter"){
-            playersData[num][key]++;           // normales Tor
-            playersData[num]["Tempotore"]++;   // zusätzlich Tempotor
-            updateTables();
+            // double click = one normal goal + one tempotor (per-action temp counter)
+            playersData[num][key]++; // count goal
+            playersData[num][key + "_temp"]++; // mark as tempotor
+            updateAll();
+        } else {
+            // double click on non-positive or torhüter -> treat as single (or ignore)
+            playersData[num][key]++;
+            updateAll();
         }
     }
 
     function updateButtonText(btn,num,key){
-        const val=playersData[num][key];
-        const tempo=playersData[num]["Tempotore"];
-        if(actionsPositive.some(a=>a.key===key) && playerCategories[num-1]!=="Torhüter"){
-            btn.textContent=`${getLabel(key)} (${val})`;
-        }else{
-            btn.textContent=`${getLabel(key)} (${val})`;
+        const val = playersData[num][key] || 0;
+        const isPos = actionsPositive.some(a=>a.key===key);
+        const isField = playerCategories[num-1] !== "Torhüter";
+        let tempo = 0;
+        if(isPos && isField) tempo = playersData[num][key + "_temp"] || 0;
+
+        if(isPos && isField){
+            btn.textContent = `${getLabel(key)} (${val}${tempo>0 ? ' ('+tempo+')' : ''})`;
+        } else {
+            btn.textContent = `${getLabel(key)} (${val})`;
         }
     }
 
     function getLabel(key){
         const a=[...actionsPositive,...actionsNegative].find(x=>x.key===key);
         return a ? a.label : key;
+    }
+
+    // update everything: tables + button labels
+    function updateAll(){
+        // update button labels
+        document.querySelectorAll('.btn').forEach(btn=>{
+            const p = btn.dataset.player;
+            const k = btn.dataset.key;
+            if(p && k && playersData[p]){
+                updateButtonText(btn, parseInt(p), k);
+            }
+        });
+        // update tables
+        updateTables();
     }
 
     function updateTables(){
@@ -377,19 +451,28 @@ th { background: #f0f0f0; }
             }
             lastCat=cat;
 
-            let posSum=actionsPositive.reduce((s,a)=>s+playersData[num][a.key],0);
-            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+playersData[num][a.key],0);
-            let negSumAll=actionsNegative.reduce((s,a)=>s+playersData[num][a.key],0);
+            let posSum=actionsPositive.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
+            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+(playersData[num][a.key]||0),0);
+            let negSumAll=actionsNegative.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
             let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
             let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
 
             let row=`<tr><td>${playerNames[num-1]}</td>`;
-            actionsPositive.forEach(a=>row+=`<td>${playersData[num][a.key]}</td>`);
-            actionsNegative.forEach((a,i)=>row+=`<td class="${i===0?"thick-separator":""}">${playersData[num][a.key]}</td>`);
+            actionsPositive.forEach(a=>{
+                const val = playersData[num][a.key] || 0;
+                const tempo = playersData[num][a.key + "_temp"] || 0;
+                if(playerCategories[num-1] !== "Torhüter"){
+                    row += `<td>${val}${tempo>0 ? ` (${tempo})` : ''}</td>`;
+                } else {
+                    row += `<td>${val}</td>`;
+                }
+            });
+            actionsNegative.forEach((a,i)=>row+=`<td class="${i===0?"thick-separator":""}">${playersData[num][a.key]||0}</td>`);
             row+=`<td>${wq}</td><td>${wqTF}</td></tr>`;
             playerRows+=row;
         });
-        // ---- Teamstatistik ----
+
+        // ---- Teamstatistik per Kategorie (inkl. Tempotore) ----
         let teamRows="";
         const teamCategories=["Rückraum","Außen","Kreis","Torhüter"];
         teamCategories.forEach(cat=>{
@@ -398,12 +481,12 @@ th { background: #f0f0f0; }
 
             let catSums={};
             [...actionsPositive,...actionsNegative].forEach(a=>{
-                catSums[a.key]=nums.reduce((s,n)=>s+playersData[n][a.key],0);
+                catSums[a.key]=nums.reduce((s,n)=>s+(playersData[n][a.key]||0),0);
             });
             let posSum=actionsPositive.reduce((s,a)=>s+catSums[a.key],0);
             let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+catSums[a.key],0);
             let negSumAll=actionsNegative.reduce((s,a)=>s+catSums[a.key],0);
-            let tempoSum=nums.reduce((s,n)=>s+playersData[n]["Tempotore"],0);
+            let tempoSum=nums.reduce((s,n)=>s+actionsPositive.reduce((t,a)=>t+(playersData[n][a.key + "_temp"]||0),0),0);
             let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
             let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
 
@@ -414,33 +497,34 @@ th { background: #f0f0f0; }
             teamRows+=row;
         });
 
-        document.getElementById("playerStats").innerHTML=
-            buildTable("playerStats","Spieler",playerRows);
-        document.getElementById("teamStats").innerHTML=
-            buildTable("teamStats","Kategorie",teamRows,"<th>Tempotore</th>");
+        document.getElementById("playerStats").innerHTML = buildTable("playerTable","Spieler",playerRows);
+        document.getElementById("teamStats").innerHTML = buildTable("teamTable","Kategorie",teamRows,"<th>Tempotore</th>");
     }
 
-    // ---- Exportfunktionen ----
-    document.getElementById("playerExport").addEventListener("click",()=>{
+    // ---- Exportfunktionen (CSV) ----
+    document.getElementById("playerExport").addEventListener("click",(e)=>{
+        // if inner button pressed, allow same behavior; we treat click on parent as "export players"
         let csv="Spieler,"+
             actionsPositive.map(a=>a.label).join(",")+","+
             actionsNegative.map(a=>a.label).join(",")+
             ",WQ,WQ inkl. TF,Tempotore\n";
         Object.keys(playersData).forEach(num=>{
-            let posSum=actionsPositive.reduce((s,a)=>s+playersData[num][a.key],0);
-            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+playersData[num][a.key],0);
-            let negSumAll=actionsNegative.reduce((s,a)=>s+playersData[num][a.key],0);
+            let posSum=actionsPositive.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
+            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+(playersData[num][a.key]||0),0);
+            let negSumAll=actionsNegative.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
             let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
             let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
+            // total tempotore per player
+            let totalTempo = actionsPositive.reduce((t,a)=>t+(playersData[num][a.key + "_temp"]||0),0);
             csv+=`${playerNames[num-1]},`+
-                actionsPositive.map(a=>playersData[num][a.key]).join(",")+","+
-                actionsNegative.map(a=>playersData[num][a.key]).join(",")+","+
-                `${wq},${wqTF},${playersData[num]["Tempotore"]}\n`;
+                actionsPositive.map(a=>playersData[num][a.key]||0).join(",")+","+
+                actionsNegative.map(a=>playersData[num][a.key]||0).join(",")+","+
+                `${wq},${wqTF},${totalTempo}\n`;
         });
         downloadCSV(csv,`Spieler_Statistik_${currentOpponent}.csv`);
     });
 
-    document.getElementById("teamExport").addEventListener("click",()=>{
+    document.getElementById("teamExport").addEventListener("click",(e)=>{
         const teamCategories=["Rückraum","Außen","Kreis","Torhüter"];
         let csv="Kategorie,"+
             actionsPositive.map(a=>a.label).join(",")+","+
@@ -451,12 +535,12 @@ th { background: #f0f0f0; }
             if(nums.length===0) return;
             let catSums={};
             [...actionsPositive,...actionsNegative].forEach(a=>{
-                catSums[a.key]=nums.reduce((s,n)=>s+playersData[n][a.key],0);
+                catSums[a.key]=nums.reduce((s,n)=>s+(playersData[n][a.key]||0),0);
             });
             let posSum=actionsPositive.reduce((s,a)=>s+catSums[a.key],0);
             let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+catSums[a.key],0);
             let negSumAll=actionsNegative.reduce((s,a)=>s+catSums[a.key],0);
-            let tempoSum=nums.reduce((s,n)=>s+playersData[n]["Tempotore"],0);
+            let tempoSum=nums.reduce((s,n)=>s+actionsPositive.reduce((t,a)=>t+(playersData[n][a.key + "_temp"]||0),0),0);
             let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
             let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
             csv+=`${cat},`+
@@ -475,6 +559,8 @@ th { background: #f0f0f0; }
         a.click();
         URL.revokeObjectURL(url);
     }
+
+})();
 </script>
 </body>
 </html>
