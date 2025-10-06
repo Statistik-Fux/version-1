@@ -405,14 +405,6 @@ th { background: #f0f0f0; }
     doc.autoTable({ html: teamTable, startY: 15 });
     doc.save(`Statistik_${currentOpponent}.pdf`);
   });
-
-  // --------------------- Spielende / Reset ---------------------
-  document.getElementById("endGameBtn").addEventListener("click", () => {
-    if (confirm("Spiel wirklich beenden?")) {
-      location.reload();
-    }
-  });
-
   // --------------------- Start Button ---------------------
   startBtn.addEventListener("click", validateAndStart);
 })();
