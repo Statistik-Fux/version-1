@@ -20,11 +20,8 @@ body::before, body::after {
 }
 body::before { left: 15%; }
 body::after { right: 15%; }
-
 h1, h2 { text-align: center; margin-bottom: 15px; }
-
-#setup {
-    background: rgba(255, 255, 255, 0.6); padding: 20px; border-radius: 12px;
+#setup { background: rgba(255, 255, 255, 0.6); padding: 20px; border-radius: 12px;
     max-width: 500px; margin: 30px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 #opponent, #teamSelect {
@@ -35,61 +32,42 @@ h1, h2 { text-align: center; margin-bottom: 15px; }
 #opponent:focus, #teamSelect:focus {
     outline: none; border-color: #009688; box-shadow: 0 0 5px rgba(0,150,136,0.5);
 }
-
 #player-selection { display: flex; gap: 10px; flex-wrap: nowrap; justify-content: space-between; }
 #player-selection .column { width: 48%; display: flex; flex-direction: column; gap: 8px; }
 #player-selection label { cursor: pointer; font-size: 1em; padding: 4px 0; }
 #player-selection input[type="checkbox"] { margin-right: 6px; transform: scale(1.2); }
-
 .add-player-container { margin-top: 15px; display: flex; gap: 5px; }
-.add-player-container input {
-    flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px;
-}
-.add-player-container select {
-    margin-left:5px; padding:6px; border-radius:6px; border:1px solid #ccc;
-}
+.add-player-container input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+.add-player-container select { margin-left:5px; padding:6px; border-radius:6px; border:1px solid #ccc; }
 .add-player-container button {
     padding: 8px 12px; border: none; border-radius: 6px;
     background-color: #009688; color: white; cursor: pointer; font-size: 1em;
 }
 .add-player-container button:hover { background-color: #00796b; }
-
 .start-btn {
-    font-size: 1.3em; padding: 12px 15px;
-    background: linear-gradient(90deg, #009688, #26a69a);
-    color: white; border: none; border-radius: 8px; cursor: pointer;
-    width: 100%; margin-top: 20px; transition: background 0.3s, transform 0.1s;
+    font-size: 1.3em; padding: 12px 15px; background: linear-gradient(90deg, #009688, #26a69a);
+    color: white; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 20px;
+    transition: background 0.3s, transform 0.1s;
 }
 .start-btn:hover { background: linear-gradient(90deg, #00796b, #26a69a); }
 .start-btn:active { transform: scale(0.98); }
-
-.player-card {
-    border-radius: 8px; padding: 10px; margin: 10px; flex: 1; min-width: 250px;
+.player-card { border-radius: 8px; padding: 10px; margin: 10px; flex: 1; min-width: 250px;
     background: white; box-shadow: 0 3px 8px rgba(0,0,0,0.05);
 }
 .player-name { font-weight: bold; font-size: 1.4em; text-align: center; margin-bottom: 10px; }
-
 .grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 10px; }
-
-.btn {
-    width: 31%; padding: 8px; margin: 2px 1%; border: none; cursor: pointer;
+.btn { width: 31%; padding: 8px; margin: 2px 1%; border: none; cursor: pointer;
     font-size: 0.9em; border-radius: 6px; user-select: none;
 }
 .positive { background-color: #d4edda; }
 .negative { background-color: #f8d7da; }
 .full-width { width: 98%; }
-
-table {
-    width: 100%; border-collapse: collapse; margin-top: 20px;
-    background-color: white; font-size: 0.9em;
-}
+table { width: 100%; border-collapse: collapse; margin-top: 20px; background-color: white; font-size: 0.9em; }
 th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
 th { background: #f0f0f0; }
 .thick-separator { border-left: 3px solid black !important; }
-
 .export-buttons { margin-top: 20px; text-align: center; }
 .hidden { display: none; }
-
 @media (max-width: 768px) {
     .btn { width: 48%; font-size: 0.85em; padding: 6px; }
     .player-card { min-width: unset; width: 100%; }
@@ -100,31 +78,29 @@ th { background: #f0f0f0; }
 </style>
 </head>
 <body>
-    <main id="setup">
-    <h1>Willkommen!</h1>
-    <input type="text" id="opponent" placeholder="Gegner eingeben">
-    <select id="teamSelect">
-        <option value="Fux2">Fux2</option>
-        <option value="FuxA">FuxA</option>
+
+<main id="setup">
+<h1>Willkommen!</h1>
+<input type="text" id="opponent" placeholder="Gegner eingeben">
+<select id="teamSelect">
+    <option value="Fux2">Fux2</option>
+    <option value="FuxA">FuxA</option>
+</select>
+<section id="player-selection">
+    <div class="column" id="col1"></div>
+    <div class="column" id="col2"></div>
+</section>
+<div class="add-player-container">
+    <input type="text" id="newPlayerName" placeholder="Spielername eingeben">
+    <select id="newPlayerCategory">
+        <option value="Rückraum">Rückraum</option>
+        <option value="Außen">Außen</option>
+        <option value="Kreis">Kreis</option>
+        <option value="Torhüter">Torhüter</option>
     </select>
-
-    <section id="player-selection">
-        <div class="column" id="col1"></div>
-        <div class="column" id="col2"></div>
-    </section>
-
-    <div class="add-player-container">
-        <input type="text" id="newPlayerName" placeholder="Spielername eingeben">
-        <select id="newPlayerCategory">
-            <option value="Rückraum">Rückraum</option>
-            <option value="Außen">Außen</option>
-            <option value="Kreis">Kreis</option>
-            <option value="Torhüter">Torhüter</option>
-        </select>
-        <button type="button" id="addPlayerBtn">+</button>
-    </div>
-
-    <button class="start-btn" id="startBtn">Start</button>
+    <button type="button" id="addPlayerBtn">+</button>
+</div>
+<button class="start-btn" id="startBtn">Start</button>
 </main>
 
 <h1 id="headline" class="hidden"></h1>
@@ -141,356 +117,305 @@ th { background: #f0f0f0; }
     <button data-export="pdf" data-table="teamTable">Export PDF</button>
 </div>
 <div id="teamStats"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-(() => {
-    const cb = Date.now();
-    const col1 = document.getElementById("col1");
-    const col2 = document.getElementById("col2");
-    const startBtn = document.getElementById("startBtn");
-    const teamSelect = document.getElementById("teamSelect");
-    const addPlayerBtn = document.getElementById("addPlayerBtn");
-    const newPlayerNameInput = document.getElementById("newPlayerName");
-    const newPlayerCategorySelect = document.getElementById("newPlayerCategory");
+    (() => {
+  const cb = Date.now();
+  const col1 = document.getElementById("col1");
+  const col2 = document.getElementById("col2");
+  const startBtn = document.getElementById("startBtn");
+  const teamSelect = document.getElementById("teamSelect");
+  const addPlayerBtn = document.getElementById("addPlayerBtn");
+  const newPlayerNameInput = document.getElementById("newPlayerName");
+  const newPlayerCategorySelect = document.getElementById("newPlayerCategory");
 
-    let currentOpponent = "";
+  let currentOpponent = "";
 
-    const teams = {
-        Fux2: ["Julian Kusche","Gabriel Kofler","Lauro Pichiri","Felix Bernkop-Schnürch","Rune Laskowski","Lucas Mohr","Navi Yatawarage","William Reichardt","Justin Wollny","Jan Grüner","Dominik Kupiec","Lennart Steltner","Luca Thiel","Tim Schröder","Jonas Kofler","Till Braren","Pius Joppich","Norman Glamann"],
-        FuxA: ["Leo Nowak","Simon Poppe","Fritz Parke","Fynn Paulicks","Filip Dominikovic","Leo Tautenhahn","Antonio D'Incecco","Noah Skei","Simon Sirot","Albert Schmidt","Gabor Zeuch","Christopher Losch","Davide Babini","Tillman Stark","Henning Lahuis","Ole Krake","Matteo Agistonelli"]
-    };
+  const teams = {
+    Fux2: ["Julian Kusche","Gabriel Kofler","Lauro Pichiri","Felix Bernkop-Schnürch","Rune Laskowski","Lucas Mohr","Navi Yatawarage","William Reichardt","Justin Wollny","Jan Grüner","Dominik Kupiec","Lennart Steltner","Luca Thiel","Tim Schröder","Jonas Kofler","Till Braren","Pius Joppich","Norman Glamann"],
+    FuxA: ["Leo Nowak","Simon Poppe","Fritz Parke","Fynn Paulicks","Filip Dominikovic","Leo Tautenhahn","Antonio D'Incecco","Noah Skei","Simon Sirot","Albert Schmidt","Gabor Zeuch","Christopher Losch","Davide Babini","Tillman Stark","Henning Lahuis","Ole Krake","Matteo Agistonelli"]
+  };
 
-    const categories = {
-        Fux2: [...Array(8).fill("Rückraum"),...Array(5).fill("Außen"),...Array(3).fill("Kreis"),...Array(2).fill("Torhüter")],
-        FuxA: [...Array(8).fill("Rückraum"),...Array(4).fill("Außen"),...Array(2).fill("Kreis"),...Array(3).fill("Torhüter")]
-    };
+  const categories = {
+    Fux2: [...Array(8).fill("Rückraum"), ...Array(5).fill("Außen"), ...Array(3).fill("Kreis"), ...Array(2).fill("Torhüter")],
+    FuxA: [...Array(8).fill("Rückraum"), ...Array(4).fill("Außen"), ...Array(2).fill("Kreis"), ...Array(3).fill("Torhüter")]
+  };
 
-    let playerNames = [...teams.Fux2];
-    let playerCategories = [...categories.Fux2];
+  let playerNames = [...teams.Fux2];
+  let playerCategories = [...categories.Fux2];
 
-    const actionsPositive = [
-        {key:"KM_pos",label:"KM"},
-        {key:"DBR_pos",label:"DBR"},
-        {key:"AUSSEN_pos",label:"Außen"},
-        {key:"NAH_pos",label:"NAH"},
-        {key:"FERN_pos",label:"FERN"},
-        {key:"TGS_pos",label:"TGS"},
-        {key:"LT_pos",label:"Leeres"},
-        {key:"7M_pos",label:"7M"}
-    ];
-    const actionsNegative = [
-        {key:"KM_neg",label:"KM"},
-        {key:"DBR_neg",label:"DBR"},
-        {key:"AUSSEN_neg",label:"Außen"},
-        {key:"NAH_neg",label:"NAH"},
-        {key:"FERN_neg",label:"FERN"},
-        {key:"TGS_neg",label:"TGS"},
-        {key:"LT_neg",label:"Leeres"},
-        {key:"7M_neg",label:"7M"},
-        {key:"TF_neg",label:"TF"}
-    ];
+  // ➕ Positive Aktionen – hier mit zusätzlichem „Tempotor“
+  const actionsPositive = [
+    {key:"KM_pos",label:"KM"},
+    {key:"DBR_pos",label:"DBR"},
+    {key:"AUSSEN_pos",label:"Außen"},
+    {key:"NAH_pos",label:"NAH"},
+    {key:"FERN_pos",label:"FERN"},
+    {key:"TGS_pos",label:"TGS"},
+    {key:"LT_pos",label:"Leeres"},
+    {key:"7M_pos",label:"7M"},
+    {key:"TEMPOTOR_pos",label:"Tempotor"} // <<< NEU
+  ];
 
-    let playersData = {};
+  const actionsNegative = [
+    {key:"KM_neg",label:"KM"},
+    {key:"DBR_neg",label:"DBR"},
+    {key:"AUSSEN_neg",label:"Außen"},
+    {key:"NAH_neg",label:"NAH"},
+    {key:"FERN_neg",label:"FERN"},
+    {key:"TGS_neg",label:"TGS"},
+    {key:"LT_neg",label:"Leeres"},
+    {key:"7M_neg",label:"7M"},
+    {key:"TF_neg",label:"TF"}
+  ];
 
-    window.addEventListener("load", () => {
-        try {
-            document.styleSheets[0].cssRules[1].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
-            document.styleSheets[0].cssRules[2].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
-        } catch(e){}
-        renderPlayerCheckboxes();
+  let playersData = {};
+  let pressTimer, longPressActive, activeTouch;
+
+  window.addEventListener("load", () => {
+    document.styleSheets[0].cssRules[1].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
+    document.styleSheets[0].cssRules[2].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
+    renderPlayerCheckboxes();
+  });
+
+  function renderPlayerCheckboxes() {
+    col1.innerHTML = "";
+    col2.innerHTML = "";
+    playerNames.forEach((name,i) => {
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = i + 1;
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(` ${name}`));
+      (i < Math.ceil(playerNames.length / 2) ? col1 : col2).appendChild(label);
     });
+  }
 
-    function renderPlayerCheckboxes() {
-        col1.innerHTML = ""; col2.innerHTML = "";
-        playerNames.forEach((name,i)=>{
-            const label=document.createElement("label");
-            const checkbox=document.createElement("input");
-            checkbox.type="checkbox"; checkbox.value=i+1;
-            label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(" "+name));
-            (i<Math.ceil(playerNames.length/2)?col1:col2).appendChild(label);
-        });
+  teamSelect.addEventListener("change", () => {
+    playerNames = [...teams[teamSelect.value]];
+    playerCategories = [...categories[teamSelect.value]];
+    renderPlayerCheckboxes();
+  });
+
+  addPlayerBtn.addEventListener("click", () => {
+    const n = newPlayerNameInput.value.trim();
+    const cat = newPlayerCategorySelect.value;
+    if(n){
+      let insertIndex = playerCategories.findLastIndex(c => c === cat);
+      if(insertIndex === -1) insertIndex = playerCategories.length - 1;
+      else insertIndex = insertIndex + 1;
+      playerNames.splice(insertIndex,0,n);
+      playerCategories.splice(insertIndex,0,cat);
+      renderPlayerCheckboxes();
+      newPlayerNameInput.value="";
     }
+  });
 
-    teamSelect.addEventListener("change",()=>{
-        playerNames=[...teams[teamSelect.value]];
-        playerCategories=[...categories[teamSelect.value]];
-        renderPlayerCheckboxes();
-    });
-
-    addPlayerBtn.addEventListener("click",()=>{
-        const n=newPlayerNameInput.value.trim();
-        const cat=newPlayerCategorySelect.value;
-        if(n){
-            let insertIndex=playerCategories.findLastIndex(c=>c===cat);
-            if(insertIndex===-1) insertIndex=playerCategories.length-1;
-            else insertIndex++;
-            playerNames.splice(insertIndex,0,n);
-            playerCategories.splice(insertIndex,0,cat);
-            renderPlayerCheckboxes();
-            newPlayerNameInput.value="";
-        }
-    });
-
-    startBtn.addEventListener("click",()=>{
-        const opponent=document.getElementById("opponent").value.trim();
-        const selected=Array.from(document.querySelectorAll("#player-selection input:checked"));
-        if(!opponent||selected.length<7){
-            alert("Bitte korrigieren:\n- Gegner eingeben\n- Mindestens 7 Spieler auswählen");
-            return;
-        }
-        currentOpponent=opponent;
-        startGame(opponent,selected.map(cb=>parseInt(cb.value)));
-    });
-
-    function startGame(opponent,selectedPlayers){
-        document.getElementById("headline").innerText=`Statistik vs ${opponent}`;
-        document.getElementById("setup").classList.add("hidden");
-        document.getElementById("headline").classList.remove("hidden");
-        document.getElementById("playerExport").classList.remove("hidden");
-        document.getElementById("teamExport").classList.remove("hidden");
-
-        const playersDiv=document.getElementById("players");
-        playersDiv.innerHTML="";
-
-        selectedPlayers.forEach(num=>{
-            // initialize per-player counters
-            playersData[num]={};
-            [...actionsPositive].forEach(a=>{
-                playersData[num][a.key]=0;
-            });
-            [...actionsNegative].forEach(a=>{
-                playersData[num][a.key]=0;
-            });
-
-            const card=document.createElement("div");
-            card.className="player-card";
-            const nameDiv=document.createElement("div");
-            nameDiv.className="player-name";
-            nameDiv.textContent=playerNames[num-1];
-            card.appendChild(nameDiv);
-
-            [...actionsPositive,...actionsNegative].forEach((a,idx)=>{
-                const btn=document.createElement("button");
-                btn.className=`btn ${idx<actionsPositive.length?"positive":"negative"}`;
-                if(a.key==="TF_neg") btn.classList.add("full-width");
-
-                btn.dataset.player = num;
-                btn.dataset.key = a.key;
-
-                updateButtonText(btn,num,a.key);
-
-                // click & long-press logic
-                let clickTimer = null;
-                let pressTimer = null;
-                let longPressTriggered = false;
-
-                const startPress = () => {
-                    longPressTriggered = false;
-                    pressTimer = setTimeout(()=>{
-                        longPressTriggered = true;
-                        decrementAction(num, a.key);
-                        updateAll();
-                    }, 600);
-                };
-                const cancelPress = () => { clearTimeout(pressTimer); };
-
-                if(window.PointerEvent){
-                    btn.addEventListener("pointerdown", startPress);
-                    btn.addEventListener("pointerup", cancelPress);
-                    btn.addEventListener("pointercancel", cancelPress);
-                    btn.addEventListener("pointerleave", cancelPress);
-                } else {
-                    btn.addEventListener("mousedown", startPress);
-                    btn.addEventListener("mouseup", cancelPress);
-                    btn.addEventListener("mouseleave", cancelPress);
-                    btn.addEventListener("touchstart", startPress, {passive:true});
-                    btn.addEventListener("touchend", cancelPress);
-                    btn.addEventListener("touchcancel", cancelPress);
-                }
-
-                btn.addEventListener("click",(e)=>{
-                    if(longPressTriggered){ longPressTriggered=false; return; }
-                    if(clickTimer==null){
-                        clickTimer = setTimeout(()=>{
-                            handleSingleClick(num, a.key);
-                            clickTimer = null;
-                        },250);
-                    } else {
-                        clearTimeout(clickTimer);
-                        clickTimer = null;
-                        handleDoubleClick(num, a.key);
-                    }
-                });
-
-                card.appendChild(btn);
-                if(idx===actionsPositive.length-1){
-                    const sep=document.createElement("div");
-                    sep.style.borderBottom="3px solid black";
-                    sep.style.margin="5px 0";
-                    card.appendChild(sep);
-                }
-            });
-
-            playersDiv.appendChild(card);
-        });
-
-        updateAll();
+  function validateAndStart() {
+    const opponent = document.getElementById("opponent").value.trim();
+    const selected = Array.from(document.querySelectorAll("#player-selection input:checked"));
+    if (!opponent || selected.length < 7) {
+      alert("Bitte korrigieren:\n- Gegner eingeben\n- Mindestens 7 Spieler auswählen");
+      return;
     }
+    currentOpponent = opponent;
+    startGame(opponent, selected.map(cb => parseInt(cb.value)));
+  }
 
-    function decrementAction(num, key){
-        if(playersData[num][key] > 0) playersData[num][key]--;
-    }
+  function startGame(opponent, selectedPlayers) {
+    document.getElementById("headline").innerText = `Statistik vs ${opponent}`;
+    document.getElementById("setup").classList.add("hidden");
+    document.getElementById("headline").classList.remove("hidden");
+    document.getElementById("playerExport").classList.remove("hidden");
+    document.getElementById("teamExport").classList.remove("hidden");
+    const playersDiv = document.getElementById("players");
+    playersDiv.innerHTML = "";
 
-    function handleSingleClick(num,key){
-        playersData[num][key]++;
-        updateAll();
-    }
+    selectedPlayers.forEach(num => {
+      playersData[num] = {};
+      [...actionsPositive, ...actionsNegative].forEach(a => playersData[num][a.key] = 0);
+      const card = document.createElement("div");
+      card.className = "player-card";
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "player-name";
+      nameDiv.textContent = playerNames[num - 1];
+      card.appendChild(nameDiv);
+        // Button-Erstellung für jede Aktion
+      [...actionsPositive, ...actionsNegative].forEach((a, idx) => {
+        const btn = document.createElement("button");
+        btn.className = `btn ${idx < actionsPositive.length ? "positive" : "negative"}`;
+        if (a.key.startsWith("TF") && idx >= actionsPositive.length) btn.classList.add("full-width");
+        btn.textContent = `${a.label} (0)`;
 
-    function handleDoubleClick(num,key){
-        playersData[num][key]++;
-        updateAll();
-    }
-
-    function updateButtonText(btn,num,key){
-        const val = playersData[num][key] || 0;
-        btn.textContent = `${getLabel(key)} (${val})`;
-    }
-
-    function getLabel(key){
-        const a=[...actionsPositive,...actionsNegative].find(x=>x.key===key);
-        return a ? a.label : key;
-    }
-
-    function updateAll(){
-        document.querySelectorAll('.btn').forEach(btn=>{
-            const p = btn.dataset.player;
-            const k = btn.dataset.key;
-            if(p && k && playersData[p]){
-                updateButtonText(btn, parseInt(p), k);
-            }
-        });
-        updateTables();
-    }
-})();
-</script>
-<script>
-(() => {
-    function updateTables(){
-        const buildTable=(id,header1,rows,extra="")=>{
-            let headerRow=`<tr><th>${header1}</th>`+
-                actionsPositive.map(a=>`<th>${a.label}</th>`).join("")+
-                actionsNegative.map((a,i)=>`<th class="${i===0?"thick-separator":""}">${a.label}</th>`).join("")+
-                `<th>WQ</th><th>WQ inkl. TF</th>${extra}</tr>`;
-            return `<table id="${id}">${headerRow}${rows}</table>`;
+        const startPress = () => {
+          longPressActive = false;
+          pressTimer = setTimeout(() => {
+            playersData[num][a.key] = Math.max(0, playersData[num][a.key] - 1);
+            btn.textContent = `${a.label} (${playersData[num][a.key]})`;
+            updateTables();
+            longPressActive = true;
+          }, 500);
+        };
+        const endPress = () => {
+          clearTimeout(pressTimer);
+          if (!longPressActive) {
+            playersData[num][a.key]++;
+            btn.textContent = `${a.label} (${playersData[num][a.key]})`;
+            updateTables();
+          }
         };
 
-        // ---- Spielerstatistik ----
-        let playerRows="";
-        let lastCat=null;
-        Object.keys(playersData).forEach(num=>{
-            const cat=playerCategories[num-1];
-            if(lastCat && lastCat!==cat){
-                playerRows+=`<tr><td colspan="${actionsPositive.length+actionsNegative.length+3}"></td></tr>`;
-            }
-            lastCat=cat;
+        btn.addEventListener("mousedown", e => { if (!activeTouch) startPress(); });
+        btn.addEventListener("mouseup", e => { if (!activeTouch) endPress(); });
+        btn.addEventListener("mouseleave", () => clearTimeout(pressTimer));
+        btn.addEventListener("touchstart", e => { activeTouch = true; startPress(); e.preventDefault(); });
+        btn.addEventListener("touchend", e => { endPress(); setTimeout(() => activeTouch = false, 300); e.preventDefault(); });
+        btn.addEventListener("touchcancel", () => clearTimeout(pressTimer));
 
-            let posSum=actionsPositive.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            let negSumAll=actionsNegative.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
-            let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
-
-            let row=`<tr><td>${playerNames[num-1]}</td>`;
-            actionsPositive.forEach(a=>{
-                const val = playersData[num][a.key] || 0;
-                row += `<td>${val}</td>`;
-            });
-            actionsNegative.forEach((a,i)=>row+=`<td class="${i===0?"thick-separator":""}">${playersData[num][a.key]||0}</td>`);
-            row+=`<td>${wq}</td><td>${wqTF}</td></tr>`;
-            playerRows+=row;
-        });
-
-        // ---- Teamstatistik pro Kategorie ----
-        let teamRows="";
-        const teamCategories=["Rückraum","Außen","Kreis","Torhüter"];
-        teamCategories.forEach(cat=>{
-            const nums=Object.keys(playersData).filter(n=>playerCategories[n-1]===cat);
-            if(nums.length===0) return;
-
-            let catSums={};
-            [...actionsPositive,...actionsNegative].forEach(a=>{
-                catSums[a.key]=nums.reduce((s,n)=>s+(playersData[n][a.key]||0),0);
-            });
-            let posSum=actionsPositive.reduce((s,a)=>s+catSums[a.key],0);
-            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+catSums[a.key],0);
-            let negSumAll=actionsNegative.reduce((s,a)=>s+catSums[a.key],0);
-            let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
-            let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
-
-            let row=`<tr><td>${cat}</td>`;
-            actionsPositive.forEach(a=>row+=`<td>${catSums[a.key]}</td>`);
-            actionsNegative.forEach((a,i)=>row+=`<td class="${i===0?"thick-separator":""}">${catSums[a.key]}</td>`);
-            row+=`<td>${wq}</td><td>${wqTF}</td></tr>`;
-            teamRows+=row;
-        });
-
-        document.getElementById("playerStats").innerHTML = buildTable("playerTable","Spieler",playerRows);
-        document.getElementById("teamStats").innerHTML = buildTable("teamTable","Kategorie",teamRows);
-    }
-
-    // ---- Export CSV ----
-    document.getElementById("playerExport").addEventListener("click",()=>{
-        let csv="Spieler,"+
-            actionsPositive.map(a=>a.label).join(",")+","+
-            actionsNegative.map(a=>a.label).join(",")+
-            ",WQ,WQ inkl. TF\n";
-        Object.keys(playersData).forEach(num=>{
-            let posSum=actionsPositive.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            let negSumAll=actionsNegative.reduce((s,a)=>s+(playersData[num][a.key]||0),0);
-            let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
-            let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
-            csv+=`${playerNames[num-1]},`+
-                actionsPositive.map(a=>playersData[num][a.key]||0).join(",")+","+
-                actionsNegative.map(a=>playersData[num][a.key]||0).join(",")+","+
-                `${wq},${wqTF}\n`;
-        });
-        downloadCSV(csv,`Spieler_Statistik_${currentOpponent}.csv`);
+        card.appendChild(btn);
+        if (idx === actionsPositive.length - 1) {
+          const sep = document.createElement("div");
+          sep.style.borderBottom = "3px solid black";
+          sep.style.margin = "5px 0";
+          card.appendChild(sep);
+        }
+      });
+      playersDiv.appendChild(card);
     });
+    updateTables();
+  }
 
-    document.getElementById("teamExport").addEventListener("click",()=>{
-        const teamCategories=["Rückraum","Außen","Kreis","Torhüter"];
-        let csv="Kategorie,"+
-            actionsPositive.map(a=>a.label).join(",")+","+
-            actionsNegative.map(a=>a.label).join(",")+
-            ",WQ,WQ inkl. TF\n";
-        teamCategories.forEach(cat=>{
-            const nums=Object.keys(playersData).filter(n=>playerCategories[n-1]===cat);
-            if(nums.length===0) return;
-            let catSums={};
-            [...actionsPositive,...actionsNegative].forEach(a=>{
-                catSums[a.key]=nums.reduce((s,n)=>s+(playersData[n][a.key]||0),0);
-            });
-            let posSum=actionsPositive.reduce((s,a)=>s+catSums[a.key],0);
-            let negSumExTF=actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>s+catSums[a.key],0);
-            let negSumAll=actionsNegative.reduce((s,a)=>s+catSums[a.key],0);
-            let wq=posSum+negSumExTF>0?(posSum/(posSum+negSumExTF)*100).toFixed(1)+"%":"-";
-            let wqTF=posSum+negSumAll>0?(posSum/(posSum+negSumAll)*100).toFixed(1)+"%":"-";
-            csv+=`${cat},`+
-                actionsPositive.map(a=>catSums[a.key]).join(",")+","+
-                actionsNegative.map(a=>catSums[a.key]).join(",")+","+
-                `${wq},${wqTF}\n`;
-        });
-        downloadCSV(csv,`Team_Statistik_${currentOpponent}.csv`);
+  // --------------------- Statistik aktualisieren ---------------------
+  function updateTables() {
+    const buildTable = (id, header1, rows) => {
+      let extraHeaders = id === "teamTable" ? "<th>TW</th>" : "";
+      let headerRow = `
+        <tr>
+          <th>${header1}</th>
+          ${actionsPositive.map(a => `<th>${a.label}</th>`).join("")}
+          ${actionsNegative.map((a,i) => `<th class="${i===0 ? "thick-separator" : ""}">${a.label}</th>`).join("")}
+          <th>WQ</th>
+          <th>WQ inkl. TF</th>
+          ${extraHeaders}
+        </tr>`;
+      return `<table id="${id}">${headerRow}${rows}</table>`;
+    };
+
+    // Spielerstatistik
+    let playerRows = "";
+    let lastCategory = null;
+    Object.keys(playersData).forEach(num => {
+      const cat = playerCategories[num-1];
+      if (lastCategory && lastCategory !== cat) {
+        playerRows += "";
+      }
+      lastCategory = cat;
+
+      // positive Summen ohne Tempotor
+      let posSum = actionsPositive
+          .filter(a=>a.key!=="TEMPOTOR_pos")
+          .reduce((s,a)=>s+playersData[num][a.key],0);
+
+      // negative Summen
+      let negSumExTF = actionsNegative
+          .filter(a=>a.key!=="TF_neg")
+          .reduce((s,a)=>s+playersData[num][a.key],0);
+
+      let negSum = actionsNegative.reduce((s,a)=>s+playersData[num][a.key],0);
+
+      let wq = posSum+negSumExTF>0 ? (posSum/(posSum+negSumExTF)*100).toFixed(1)+"%" : "-";
+      let wqTF = posSum+negSum>0 ? (posSum/(posSum+negSum)*100).toFixed(1)+"%" : "-";
+
+      playerRows += `
+        <tr>
+          <td>${playerNames[num-1]}</td>
+          ${actionsPositive.map(a=>`<td>${playersData[num][a.key]}</td>`).join("")}
+          ${actionsNegative.map((a,i)=>`<td class="${i===0 ? "thick-separator" : ""}">${playersData[num][a.key]}</td>`).join("")}
+          <td>${wq}</td>
+          <td>${wqTF}</td>
+        </tr>`;
     });
+    document.getElementById("playerStats").innerHTML = buildTable("playerTable", "Spieler", playerRows);
 
-    function downloadCSV(content,filename){
-        const blob=new Blob([content],{type:"text/csv;charset=utf-8;"});
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement("a");
-        a.href=url; a.download=filename;
-        a.click();
-        URL.revokeObjectURL(url);
+    // Teamstatistik
+    let sums = {};
+    [...actionsPositive, ...actionsNegative].forEach(a => sums[a.key] = 0);
+    Object.values(playersData).forEach(p => Object.keys(p).forEach(k => sums[k] += p[k]));
+
+    let fieldPlayers = Object.keys(playersData).filter(n => playerCategories[n-1] !== "Torhüter");
+
+    // Summen nur für Feldspieler (ohne Tempotor für Quote)
+    let posTotalField = actionsPositive
+        .filter(a=>a.key!=="TEMPOTOR_pos")
+        .reduce((s,a) => s + fieldPlayers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+    let negTotalExTFField = actionsNegative
+        .filter(a=>a.key!=="TF_neg")
+        .reduce((s,a) => s + fieldPlayers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+    let negTotalField = actionsNegative
+        .reduce((s,a) => s + fieldPlayers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+
+    let teamWQ = posTotalField+negTotalExTFField>0 ? (posTotalField/(posTotalField+negTotalExTFField)*100).toFixed(1)+"%" : "-";
+    let teamWQTF = posTotalField+negTotalField>0 ? (posTotalField/(posTotalField+negTotalField)*100).toFixed(1)+"%" : "-";
+
+    // Torhüter
+    let goalkeepers = Object.keys(playersData).filter(n => playerCategories[n-1] === "Torhüter");
+    let posGK = actionsPositive
+        .filter(a=>a.key!=="TEMPOTOR_pos")
+        .reduce((s,a) => s + goalkeepers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+    let negExTFGK = actionsNegative
+        .filter(a=>a.key!=="TF_neg")
+        .reduce((s,a) => s + goalkeepers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+    let tw = posGK+negExTFGK>0 ? (posGK/(posGK+negExTFGK)*100).toFixed(1)+"%" : "-";
+
+    let teamRow = `
+      <tr>
+        <td>Gesamt</td>
+        ${actionsPositive.map(a=>`<td>${fieldPlayers.reduce((sum,n)=>sum+playersData[n][a.key],0)}</td>`).join("")}
+        ${actionsNegative.map((a,i)=>`<td class="${i===0 ? "thick-separator" : ""}">${fieldPlayers.reduce((sum,n)=>sum+playersData[n][a.key],0)}</td>`).join("")}
+        <td>${teamWQ}</td>
+        <td>${teamWQTF}</td>
+        <td>${tw}</td>
+      </tr>`;
+    document.getElementById("teamStats").innerHTML = buildTable("teamTable", "Team", teamRow);
+  }
+        // --------------------- Exporte ---------------------
+  document.getElementById("playerExport").addEventListener("click", () => exportTableToExcel("playerTable", `Spielerstatistik_${currentOpponent}`));
+  document.getElementById("teamExport").addEventListener("click", () => exportTableToExcel("teamTable", `Teamstatistik_${currentOpponent}`));
+
+  function exportTableToExcel(tableID, filename = "") {
+    const table = document.getElementById(tableID);
+    const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+    XLSX.writeFile(wb, filename + ".xlsx");
+  }
+
+  // PDF-Export (einfacher Screenshot der Tabellen)
+  document.getElementById("pdfExport").addEventListener("click", () => {
+    const doc = new jspdf.jsPDF({ orientation: "landscape" });
+    doc.text(`Statistik vs ${currentOpponent}`, 14, 10);
+    const playerTable = document.getElementById("playerTable");
+    const teamTable = document.getElementById("teamTable");
+
+    doc.autoTable({ html: playerTable, startY: 15 });
+    doc.addPage();
+    doc.text("Teamstatistik", 14, 10);
+    doc.autoTable({ html: teamTable, startY: 15 });
+    doc.save(`Statistik_${currentOpponent}.pdf`);
+  });
+
+  // --------------------- Spielende / Reset ---------------------
+  document.getElementById("endGameBtn").addEventListener("click", () => {
+    if (confirm("Spiel wirklich beenden?")) {
+      location.reload();
     }
+  });
+
+  // --------------------- Start Button ---------------------
+  startBtn.addEventListener("click", validateAndStart);
 })();
 </script>
+</body>
+</html>
