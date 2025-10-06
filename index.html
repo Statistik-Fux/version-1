@@ -269,6 +269,9 @@ th { background: #f0f0f0; }
           }
         };
 
+          <div class="export-buttons hidden" id="pdfExportContainer">
+    <button id="pdfExport">Gesamtstatistik als PDF</button>
+</div>
         btn.addEventListener("mousedown", e => { if (!activeTouch) startPress(); });
         btn.addEventListener("mouseup", e => { if (!activeTouch) endPress(); });
         btn.addEventListener("mouseleave", () => clearTimeout(pressTimer));
@@ -314,6 +317,7 @@ th { background: #f0f0f0; }
         playerRows += "";
       }
       lastCategory = cat;
+        document.getElementById("pdfExportContainer").classList.remove("hidden");
 
       // positive Summen ohne Tempotor
       let posSum = actionsPositive
