@@ -1,271 +1,486 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handball Statistik</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Handball Statistik</title>
 
-<!-- Cache verhindern -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
+  <!-- Cache verhindern -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
 
-<style>
-body { font-family: Arial, sans-serif; margin: 0; background-color: #fff; }
-body::before, body::after {
-    content: ""; position: fixed; top: 50%; transform: translateY(-50%);
-    width: 70vw; height: 90vh; background-repeat: no-repeat; background-position: center;
-    background-size: contain; opacity: 0.15; filter: blur(0.5px);
-    z-index: -1; pointer-events: none;
-}
-body::before { left: 15%; }
-body::after { right: 15%; }
-h1, h2 { text-align: center; margin-bottom: 15px; }
-#setup {
-    background: rgba(255, 255, 255, 0.6); padding: 20px; border-radius: 12px;
-    max-width: 500px; margin: 30px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-#opponent, #teamSelect {
-    font-size: 1.1em; padding: 12px; width: 100%; margin-bottom: 20px;
-    border: 1px solid #ccc; border-radius: 8px; background-color: rgba(255,255,255,0.85);
-    transition: border-color 0.3s, box-shadow 0.3s; color: black;
-}
-#opponent:focus, #teamSelect:focus {
-    outline: none; border-color: #009688; box-shadow: 0 0 5px rgba(0,150,136,0.5);
-}
-#player-selection { display: flex; gap: 10px; flex-wrap: nowrap; justify-content: space-between; }
-#player-selection .column { width: 48%; display: flex; flex-direction: column; gap: 8px; }
-#player-selection label { cursor: pointer; font-size: 1em; padding: 4px 0; }
-#player-selection input[type="checkbox"] { margin-right: 6px; transform: scale(1.2); }
-.add-player-container { margin-top: 15px; display: flex; gap: 5px; }
-.add-player-container input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
-.add-player-container select { margin-left:5px; padding:6px; border-radius:6px; border:1px solid #ccc; }
-.add-player-container button {
-    padding: 8px 12px; border: none; border-radius: 6px;
-    background-color: #009688; color: white; cursor: pointer; font-size: 1em;
-}
-.add-player-container button:hover { background-color: #00796b; }
-.start-btn {
-    font-size: 1.3em; padding: 12px 15px; background: linear-gradient(90deg, #009688, #26a69a);
-    color: white; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 20px;
-    transition: background 0.3s, transform 0.1s;
-}
-.start-btn:hover { background: linear-gradient(90deg, #00796b, #26a69a); }
-.start-btn:active { transform: scale(0.98); }
-.player-card {
-    border-radius: 8px; padding: 10px; margin: 10px; flex: 1; min-width: 250px;
-    background: white; box-shadow: 0 3px 8px rgba(0,0,0,0.05);
-}
-.player-name { font-weight: bold; font-size: 1.4em; text-align: center; margin-bottom: 10px; }
-.grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 10px; }
-.btn {
-    width: 31%; padding: 8px; margin: 2px 1%; border: none; cursor: pointer;
-    font-size: 0.9em; border-radius: 6px; user-select: none;
-}
-.positive { background-color: #d4edda; }
-.negative { background-color: #f8d7da; }
-.full-width { width: 98%; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; background-color: white; font-size: 0.9em; }
-th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
-th { background: #f0f0f0; }
-.thick-separator { border-left: 3px solid black !important; }
-.export-buttons { margin-top: 20px; text-align: center; }
-.hidden { display: none; }
-@media (max-width: 768px) {
-    .btn { width: 48%; font-size: 0.85em; padding: 6px; }
-    .player-card { min-width: unset; width: 100%; }
-    #player-selection { flex-direction: column; }
-    #player-selection .column { width: 100%; }
-    table { font-size: 0.8em; }
-}
-</style>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background-color: #fff; }
+    body::before, body::after {
+      content: ""; position: fixed; top: 50%; transform: translateY(-50%);
+      width: 70vw; height: 90vh; background-repeat: no-repeat; background-position: center;
+      background-size: contain; opacity: 0.15; filter: blur(0.5px);
+      z-index: -1; pointer-events: none;
+    }
+    body::before { left: 15%; }
+    body::after { right: 15%; }
+    h1, h2 { text-align: center; margin-bottom: 15px; }
+    #setup {
+      background: rgba(255, 255, 255, 0.6);
+      padding: 20px; border-radius: 12px;
+      max-width: 500px; margin: 30px auto;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    #opponent, #teamSelect {
+      font-size: 1.1em; padding: 12px; width: 100%; margin-bottom: 20px;
+      border: 1px solid #ccc; border-radius: 8px;
+      background-color: rgba(255,255,255,0.85);
+      transition: border-color 0.3s, box-shadow 0.3s; color: black;
+    }
+    #opponent:focus, #teamSelect:focus {
+      outline: none; border-color: #009688; box-shadow: 0 0 5px rgba(0,150,136,0.5);
+    }
+    #player-selection { display: flex; gap: 10px; flex-wrap: nowrap; justify-content: space-between; }
+    #player-selection .column { width: 48%; display: flex; flex-direction: column; gap: 8px; }
+    #player-selection label { cursor: pointer; font-size: 1em; padding: 4px 0; }
+    #player-selection input[type="checkbox"] { margin-right: 6px; transform: scale(1.2); }
+    .add-player-container { margin-top: 15px; display: flex; gap: 5px; }
+    .add-player-container input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+    .add-player-container select { margin-left:5px; padding:6px; border-radius:6px; border:1px solid #ccc; }
+    .add-player-container button {
+      padding: 8px 12px; border: none; border-radius: 6px;
+      background-color: #009688; color: white; cursor: pointer; font-size: 1em;
+    }
+    .add-player-container button:hover { background-color: #00796b; }
+    .start-btn {
+      font-size: 1.3em; padding: 12px 15px;
+      background: linear-gradient(90deg, #009688, #26a69a);
+      color: white; border: none; border-radius: 8px;
+      cursor: pointer; width: 100%; margin-top: 20px;
+      transition: background 0.3s, transform 0.1s;
+    }
+    .start-btn:hover { background: linear-gradient(90deg, #00796b, #26a69a); }
+    .start-btn:active { transform: scale(0.98); }
+    .player-card {
+      border-radius: 8px; padding: 10px; margin: 10px; flex: 1; min-width: 250px;
+      background: white; box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+    }
+    .player-name { font-weight: bold; font-size: 1.4em; text-align: center; margin-bottom: 10px; }
+    .grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 10px; }
+    .btn { width: 31%; padding: 8px; margin: 2px 1%; border: none; cursor: pointer;
+      font-size: 0.9em; border-radius: 6px; user-select: none; }
+    .positive { background-color: #d4edda; }
+    .negative { background-color: #f8d7da; }
+    .full-width { width: 98%; }
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 20px;
+      background-color: white; font-size: 0.9em;
+    }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+    th { background: #f0f0f0; }
+    .thick-separator { border-left: 3px solid black !important; }
+    .export-buttons { margin-top: 20px; text-align: center; }
+    .hidden { display: none; }
+    @media (max-width: 768px) {
+      .btn { width: 48%; font-size: 0.85em; padding: 6px; }
+      .player-card { min-width: unset; width: 100%; }
+      #player-selection { flex-direction: column; }
+      #player-selection .column { width: 100%; }
+      table { font-size: 0.8em; }
+    }
+  </style>
 </head>
 <body>
-    <main id="setup">
-    <h1>Spielstatistik</h1>
-
-    <label for="teamSelect">Team auswählen:</label>
+  <main id="setup">
+    <h1>Willkommen!</h1>
+    <input type="text" id="opponent" placeholder="Gegner eingeben">
     <select id="teamSelect">
-        <option value="teamA">Team A</option>
-        <option value="teamB">Team B</option>
+      <option value="Fux2">Fux2</option>
+      <option value="FuxA">FuxA</option>
     </select>
-
-    <label for="opponent">Gegner:</label>
-    <input type="text" id="opponent" placeholder="Gegnername eingeben">
-
-    <div id="player-selection">
-        <div class="column" id="teamA-list">
-            <label><input type="checkbox" value="Spieler 1">Spieler 1</label>
-            <label><input type="checkbox" value="Spieler 2">Spieler 2</label>
-            <label><input type="checkbox" value="Spieler 3">Spieler 3</label>
-        </div>
-        <div class="column" id="teamB-list">
-            <label><input type="checkbox" value="Spieler 4">Spieler 4</label>
-            <label><input type="checkbox" value="Spieler 5">Spieler 5</label>
-            <label><input type="checkbox" value="Spieler 6">Spieler 6</label>
-        </div>
-    </div>
-
+    <section id="player-selection">
+      <div class="column" id="col1"></div>
+      <div class="column" id="col2"></div>
+    </section>
     <div class="add-player-container">
-        <input type="text" id="newPlayerName" placeholder="Neuen Spieler hinzufügen">
-        <select id="newPlayerTeam">
-            <option value="teamA">Team A</option>
-            <option value="teamB">Team B</option>
-        </select>
-        <button id="addPlayerBtn">+</button>
+      <input type="text" id="newPlayerName" placeholder="Spielername eingeben">
+      <select id="newPlayerCategory">
+        <option value="Rückraum">Rückraum</option>
+        <option value="Außen">Außen</option>
+        <option value="Kreis">Kreis</option>
+        <option value="Torhüter">Torhüter</option>
+      </select>
+      <button type="button" id="addPlayerBtn">+</button>
     </div>
+    <button class="start-btn" id="startBtn">Start</button>
+  </main>
 
-    <button id="startButton" class="start-btn">Start</button>
-</main>
+  <h1 id="headline" class="hidden"></h1>
+  <div id="players" class="grid"></div>
 
-<main id="game" class="hidden">
-    <h2 id="gameTitle">Spiel läuft</h2>
-    <div id="playersContainer" class="grid"></div>
+  <div class="export-buttons hidden" id="playerExport">
+    <button data-export="excel" data-table="playerTable">Export Excel</button>
+    <button data-export="pdf" data-table="playerTable">Export PDF</button>
+  </div>
+  <div id="playerStats"></div>
 
-    <div id="teamStats"></div>
+  <div class="export-buttons hidden" id="teamExport">
+    <button data-export="excel" data-table="teamTable">Export Excel</button>
+    <button data-export="pdf" data-table="teamTable">Export PDF</button>
+  </div>
+  <div id="teamStats"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    <!-- ✨ Neuer Button: Tempotor-Export/Anzeige -->
-    <div class="export-buttons hidden" id="pdfExportContainer">
-        <button id="pdfExport">Gesamtstatistik als PDF</button>
-    </div>
+  <script>
+  (() => {
+    const cb = Date.now();
+    const col1 = document.getElementById("col1");
+    const col2 = document.getElementById("col2");
+    const startBtn = document.getElementById("startBtn");
+    const teamSelect = document.getElementById("teamSelect");
+    const addPlayerBtn = document.getElementById("addPlayerBtn");
+    const newPlayerNameInput = document.getElementById("newPlayerName");
+    const newPlayerCategorySelect = document.getElementById("newPlayerCategory");
 
-    <div class="export-buttons hidden" id="excelExportContainer">
-        <button id="playerExport">Spielerstatistik (XLSX)</button>
-        <button id="teamExport">Teamstatistik (XLSX)</button>
-    </div>
-</main>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
+    let currentOpponent = "";
 
-    const startButton = document.getElementById("startButton");
-    const playersContainer = document.getElementById("playersContainer");
-    const setup = document.getElementById("setup");
-    const game = document.getElementById("game");
+    const teams = {
+      Fux2: ["Julian Kusche","Gabriel Kofler","Lauro Pichiri","Felix Bernkop-Schnürch","Rune Laskowski","Lucas Mohr","Navi Yatawarage","William Reichardt","Justin Wollny","Jan Grüner","Dominik Kupiec","Lennart Steltner","Luca Thiel","Tim Schröder","Jonas Kofler","Till Braren","Pius Joppich","Norman Glamann"],
+      FuxA: ["Leo Nowak","Simon Poppe","Fritz Parke","Fynn Paulicks","Filip Dominikovic","Leo Tautenhahn","Antonio D'Incecco","Noah Skei","Simon Sirot","Albert Schmidt","Gabor Zeuch","Christopher Losch","Davide Babini","Tillman Stark","Henning Lahuis","Ole Krake","Matteo Agistonelli"]
+    };
 
-    const playerExport = document.getElementById("playerExport");
-    const teamExport = document.getElementById("teamExport");
-    const pdfExport = document.getElementById("pdfExport");
+    const categories = {
+      Fux2: [...Array(8).fill("Rückraum"), ...Array(5).fill("Außen"), ...Array(3).fill("Kreis"), ...Array(2).fill("Torhüter")],
+      FuxA: [...Array(8).fill("Rückraum"), ...Array(4).fill("Außen"), ...Array(2).fill("Kreis"), ...Array(3).fill("Torhüter")]
+    };
+
+    let playerNames = [...teams.Fux2];
+    let playerCategories = [...categories.Fux2];
+
+    // ✅ Hier wurde "Tempotor" neu ergänzt
+    const actionsPositive = [
+      { key: "KM_pos", label: "KM" },
+      { key: "DBR_pos", label: "DBR" },
+      { key: "AUSSEN_pos", label: "Außen" },
+      { key: "NAH_pos", label: "NAH" },
+      { key: "FERN_pos", label: "FERN" },
+      { key: "TGS_pos", label: "TGS" },
+      { key: "LT_pos", label: "Leeres" },
+      { key: "7M_pos", label: "7M" },
+      { key: "TEMPOTOR_pos", label: "Tempotor" } // <––– NEU
+    ];
+
+    const actionsNegative = [
+      { key: "KM_neg", label: "KM" },
+      { key: "DBR_neg", label: "DBR" },
+      { key: "AUSSEN_neg", label: "Außen" },
+      { key: "NAH_neg", label: "NAH" },
+      { key: "FERN_neg", label: "FERN" },
+      { key: "TGS_neg", label: "TGS" },
+      { key: "LT_neg", label: "Leeres" },
+      { key: "7M_neg", label: "7M" },
+      { key: "TF_neg", label: "TF" }
+    ];
 
     let playersData = {};
-    let opponentName = "";
+    let pressTimer, longPressActive, activeTouch;
 
-    // ✅ Aktionen
-    const actionsPositive = ["Tor", "Assist", "Steal", "Tempotor"]; // <— Tempotor ergänzt
-    const actionsNegative = ["Fehlpass", "Fehlwurf", "Technischer Fehler"];
-
-    // Spielstart
-    startButton.addEventListener("click", () => {
-        const selected = document.querySelectorAll("#player-selection input[type=checkbox]:checked");
-        if (selected.length === 0) {
-            alert("Bitte mindestens einen Spieler auswählen!");
-            return;
-        }
-
-        opponentName = document.getElementById("opponent").value || "Unbekannter Gegner";
-        setup.classList.add("hidden");
-        game.classList.remove("hidden");
-
-        playersData = {};
-        playersContainer.innerHTML = "";
-
-        selected.forEach((checkbox) => {
-            const name = checkbox.value;
-            playersData[name] = {
-                Tor: 0, Assist: 0, Steal: 0, Tempotor: 0,
-                Fehlpass: 0, Fehlwurf: 0, "Technischer Fehler": 0,
-                GesamtPositiv: 0, GesamtNegativ: 0
-            };
-            createPlayerCard(name);
-        });
-
-        document.getElementById("pdfExportContainer").classList.remove("hidden");
-        document.getElementById("excelExportContainer").classList.remove("hidden");
-        updateTables();
+    window.addEventListener("load", () => {
+      document.styleSheets[0].cssRules[1].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
+      document.styleSheets[0].cssRules[2].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
+      renderPlayerCheckboxes();
     });
 
-    // Spielerkarte erstellen
-    function createPlayerCard(name) {
+    function renderPlayerCheckboxes() {
+      col1.innerHTML = "";
+      col2.innerHTML = "";
+      playerNames.forEach((name, i) => {
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = i + 1;
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(` ${name}`));
+        (i < Math.ceil(playerNames.length / 2) ? col1 : col2).appendChild(label);
+      });
+    }
+
+    teamSelect.addEventListener("change", () => {
+      playerNames = [...teams[teamSelect.value]];
+      playerCategories = [...categories[teamSelect.value]];
+      renderPlayerCheckboxes();
+    });
+
+    addPlayerBtn.addEventListener("click", () => {
+      const n = newPlayerNameInput.value.trim();
+      const cat = newPlayerCategorySelect.value;
+      if (n) {
+        let insertIndex = playerCategories.findLastIndex(c => c === cat);
+        if (insertIndex === -1) insertIndex = playerCategories.length - 1;
+        else insertIndex = insertIndex + 1;
+        playerNames.splice(insertIndex, 0, n);
+        playerCategories.splice(insertIndex, 0, cat);
+        renderPlayerCheckboxes();
+        newPlayerNameInput.value = "";
+      }
+    });
+
+    function validateAndStart() {
+      const opponent = document.getElementById("opponent").value.trim();
+      const selected = Array.from(document.querySelectorAll("#player-selection input:checked"));
+      if (!opponent || selected.length < 7) {
+        alert("Bitte korrigieren:\n- Gegner eingeben\n- Mindestens 7 Spieler auswählen");
+        return;
+      }
+      currentOpponent = opponent;
+      startGame(opponent, selected.map(cb => parseInt(cb.value)));
+    }
+
+    function startGame(opponent, selectedPlayers) {
+      document.getElementById("headline").innerText = `Statistik vs ${opponent}`;
+      document.getElementById("setup").classList.add("hidden");
+      document.getElementById("headline").classList.remove("hidden");
+      document.getElementById("playerExport").classList.remove("hidden");
+      document.getElementById("teamExport").classList.remove("hidden");
+      const playersDiv = document.getElementById("players");
+      playersDiv.innerHTML = "";
+
+      selectedPlayers.forEach(num => {
+        playersData[num] = {};
+        [...actionsPositive, ...actionsNegative].forEach(a => playersData[num][a.key] = 0);
         const card = document.createElement("div");
         card.className = "player-card";
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "player-name";
+        nameDiv.textContent = playerNames[num - 1];
+        card.appendChild(nameDiv);
 
-        const title = document.createElement("div");
-        title.className = "player-name";
-        title.textContent = name;
-        card.appendChild(title);
+        [...actionsPositive, ...actionsNegative].forEach((a, idx) => {
+          const btn = document.createElement("button");
+          btn.className = `btn ${idx < actionsPositive.length ? "positive" : "negative"}`;
+          if (a.key.startsWith("TF") && idx >= actionsPositive.length)
+            btn.classList.add("full-width");
+          btn.textContent = `${a.label} (0)`;
 
-        actionsPositive.forEach((action) => {
-            const btn = document.createElement("button");
-            btn.className = "btn positive";
-            btn.textContent = action;
-            btn.addEventListener("click", () => addAction(name, action));
-            card.appendChild(btn);
+          const startPress = () => {
+            longPressActive = false;
+            pressTimer = setTimeout(() => {
+              playersData[num][a.key] = Math.max(0, playersData[num][a.key] - 1);
+              btn.textContent = `${a.label} (${playersData[num][a.key]})`;
+              updateTables();
+              longPressActive = true;
+            }, 500);
+          };
+          const endPress = () => {
+            clearTimeout(pressTimer);
+            if (!longPressActive) {
+              playersData[num][a.key]++;
+              btn.textContent = `${a.label} (${playersData[num][a.key]})`;
+              updateTables();
+            }
+          };
+          btn.addEventListener("mousedown", e => { if (!activeTouch) startPress(); });
+          btn.addEventListener("mouseup", e => { if (!activeTouch) endPress(); });
+          btn.addEventListener("mouseleave", () => clearTimeout(pressTimer));
+          btn.addEventListener("touchstart", e => { activeTouch = true; startPress(); e.preventDefault(); });
+          btn.addEventListener("touchend", e => { endPress(); setTimeout(() => activeTouch = false, 300); e.preventDefault(); });
+          btn.addEventListener("touchcancel", () => clearTimeout(pressTimer));
+
+          card.appendChild(btn);
+          if (idx === actionsPositive.length - 1) {
+            const sep = document.createElement("div");
+            sep.style.borderBottom = "3px solid black";
+            sep.style.margin = "5px 0";
+            card.appendChild(sep);
+          }
+        });
+        playersDiv.appendChild(card);
+      });
+      updateTables();
+    }
+      function updateTables() {
+      const playerStatsDiv = document.getElementById("playerStats");
+      const teamStatsDiv = document.getElementById("teamStats");
+
+      // Tabellen-Header
+      let playerHTML = `
+        <h2>Spielerstatistik</h2>
+        <table id="playerTable">
+          <thead>
+            <tr>
+              <th>Spieler</th>
+              <th class="thick-separator" colspan="9">Positive Aktionen</th>
+              <th class="thick-separator" colspan="9">Negative Aktionen</th>
+              <th class="thick-separator">Gesamt +</th>
+              <th>Gesamt –</th>
+              <th>WQ</th>
+              <th>WQ inkl. TF</th>
+              <th>TW</th>
+            </tr>
+            <tr>
+              <th></th>
+              ${actionsPositive.map(a => `<th>${a.label}</th>`).join("")}
+              ${actionsNegative.map(a => `<th>${a.label}</th>`).join("")}
+              <th class="thick-separator">Σ +</th>
+              <th>Σ –</th>
+              <th>WQ</th>
+              <th>WQ inkl. TF</th>
+              <th>TW</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      const teamTotals = {};
+      [...actionsPositive, ...actionsNegative].forEach(a => teamTotals[a.key] = 0);
+
+      // Zeilen je Spieler
+      for (const num in playersData) {
+        const pdata = playersData[num];
+
+        // Tempotor nicht in Quoten einbeziehen
+        const posKeysNoTempotor = actionsPositive
+          .filter(a => a.key !== "TEMPOTOR_pos")
+          .map(a => a.key);
+
+        const totalPos = posKeysNoTempotor.reduce((sum, k) => sum + pdata[k], 0);
+        const totalNeg = actionsNegative.reduce((sum, k) => sum + pdata[k], 0);
+        const totalPosWithTempotor =
+          totalPos + (pdata["TEMPOTOR_pos"] || 0); // für Σ +
+
+        const wq = totalNeg === 0 ? totalPos : (totalPos / totalNeg).toFixed(2);
+        const wqInklTF = totalNeg === 0
+          ? totalPos
+          : (totalPos / (totalNeg + pdata["TF_neg"])).toFixed(2);
+        const tw = (totalPos - totalNeg).toFixed(0);
+
+        // Team-Summen
+        [...actionsPositive, ...actionsNegative].forEach(a => {
+          teamTotals[a.key] += pdata[a.key];
         });
 
-        actionsNegative.forEach((action) => {
-            const btn = document.createElement("button");
-            btn.className = "btn negative";
-            btn.textContent = action;
-            btn.addEventListener("click", () => addAction(name, action));
-            card.appendChild(btn);
-        });
+        playerHTML += `
+          <tr>
+            <td>${playerNames[num - 1]}</td>
+            ${actionsPositive.map(a => `<td>${pdata[a.key]}</td>`).join("")}
+            ${actionsNegative.map(a => `<td>${pdata[a.key]}</td>`).join("")}
+            <td class="thick-separator">${totalPosWithTempotor}</td>
+            <td>${totalNeg}</td>
+            <td>${wq}</td>
+            <td>${wqInklTF}</td>
+            <td>${tw}</td>
+          </tr>
+        `;
+      }
 
-        playersContainer.appendChild(card);
+      // Team-Gesamtwerte
+      const teamPosKeysNoTempotor = actionsPositive
+        .filter(a => a.key !== "TEMPOTOR_pos")
+        .map(a => a.key);
+      const teamPos = teamPosKeysNoTempotor.reduce((s, k) => s + teamTotals[k], 0);
+      const teamNeg = actionsNegative.reduce((s, k) => s + teamTotals[k], 0);
+      const teamPosWithTempotor = teamPos + (teamTotals["TEMPOTOR_pos"] || 0);
+
+      const teamWQ = teamNeg === 0 ? teamPos : (teamPos / teamNeg).toFixed(2);
+      const teamWQInklTF = teamNeg === 0
+        ? teamPos
+        : (teamPos / (teamNeg + teamTotals["TF_neg"])).toFixed(2);
+      const teamTW = (teamPos - teamNeg).toFixed(0);
+
+      playerHTML += `
+          <tr style="font-weight:bold; background:#f0f0f0;">
+            <td>Team</td>
+            ${actionsPositive.map(a => `<td>${teamTotals[a.key]}</td>`).join("")}
+            ${actionsNegative.map(a => `<td>${teamTotals[a.key]}</td>`).join("")}
+            <td class="thick-separator">${teamPosWithTempotor}</td>
+            <td>${teamNeg}</td>
+            <td>${teamWQ}</td>
+            <td>${teamWQInklTF}</td>
+            <td>${teamTW}</td>
+          </tr>
+        </tbody>
+      </table>`;
+
+      playerStatsDiv.innerHTML = playerHTML;
+
+      // Team-Gesamt-Tabelle (Kurzform)
+      teamStatsDiv.innerHTML = `
+        <h2>Teamstatistik</h2>
+        <table id="teamTable">
+          <thead>
+            <tr>
+              ${actionsPositive.map(a => `<th>${a.label}</th>`).join("")}
+              ${actionsNegative.map(a => `<th>${a.label}</th>`).join("")}
+              <th class="thick-separator">Σ +</th>
+              <th>Σ –</th>
+              <th>WQ</th>
+              <th>WQ inkl. TF</th>
+              <th>TW</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              ${actionsPositive.map(a => `<td>${teamTotals[a.key]}</td>`).join("")}
+              ${actionsNegative.map(a => `<td>${teamTotals[a.key]}</td>`).join("")}
+              <td class="thick-separator">${teamPosWithTempotor}</td>
+              <td>${teamNeg}</td>
+              <td>${teamWQ}</td>
+              <td>${teamWQInklTF}</td>
+              <td>${teamTW}</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+    }
+      // Export Funktionen
+    function exportTableToExcel(tableID) {
+      const table = document.getElementById(tableID);
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.table_to_sheet(table, {raw: true});
+      XLSX.utils.sheet_add_aoa(ws, [[`Statistik vs ${currentOpponent}`]], {origin: "A1"});
+      ws['!cols'] = Array(table.rows[0].cells.length).fill({wch: 12});
+      XLSX.utils.book_append_sheet(wb, ws, "Stats");
+      XLSX.writeFile(wb, `${tableID}.xlsx`);
     }
 
-    // Aktionen zählen
-    function addAction(player, action) {
-        if (!playersData[player]) return;
-        playersData[player][action]++;
-        updateTables();
-    }
-
-    // Statistik aktualisieren
-    function updateTables() {
-        // Summen neu berechnen
-        for (const player in playersData) {
-            const p = playersData[player];
-            p.GesamtPositiv = p.Tor + p.Assist + p.Steal + p.Tempotor;
-            p.GesamtNegativ = p.Fehlpass + p.Fehlwurf + p["Technischer Fehler"];
+    function exportTableToPDF(tableID) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({orientation: 'landscape', unit: 'mm', format: 'a4'});
+      doc.setFontSize(16);
+      doc.text(`Statistik vs ${currentOpponent}`, 14, 15);
+      doc.autoTable({
+        html: `#${tableID}`,
+        startY: 20,
+        theme: 'grid',
+        styles: { lineWidth: 0.2, lineColor: [0,0,0], halign: 'center', valign: 'middle' },
+        headStyles: { fillColor: [240,240,240], textColor: 0, lineWidth: 0.2, lineColor: [0,0,0] },
+        didParseCell: (data) => {
+          // dicke vertikale Linie zwischen positiven und negativen Aktionen
+          if (data.column.index === actionsPositive.length) {
+            data.cell.styles.lineLeftWidth = 1.5;
+            data.cell.styles.lineLeftColor = [0,0,0];
+          }
+        },
+        didDrawPage: () => {
+          doc.setFontSize(10);
+          doc.text(`Erstellt am: ${new Date().toLocaleString()}`, 14, 200);
         }
-
-        // HTML-Tabelle bauen
-        let html = "<table><tr><th>Spieler</th>";
-        actionsPositive.forEach(a => html += `<th>${a}</th>`);
-        actionsNegative.forEach(a => html += `<th>${a}</th>`);
-        html += "<th>Gesamt +</th><th>Gesamt -</th></tr>";
-
-        for (const player in playersData) {
-            const p = playersData[player];
-            html += `<tr><td>${player}</td>`;
-            actionsPositive.forEach(a => html += `<td>${p[a]}</td>`);
-            actionsNegative.forEach(a => html += `<td>${p[a]}</td>`);
-            html += `<td>${p.GesamtPositiv}</td><td>${p.GesamtNegativ}</td></tr>`;
-        }
-        html += "</table>";
-
-        document.getElementById("teamStats").innerHTML = html;
+      });
+      doc.save(`${tableID}.pdf`);
     }
 
-    // Beispielhafte Exporte (funktionieren wie gehabt)
-    if (pdfExport) {
-        pdfExport.addEventListener("click", () => {
-            alert("PDF-Export folgt hier wie bisher.");
-        });
-    }
+    // Event-Listener für Export-Buttons
+    document.querySelectorAll("button[data-export]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        const type = e.target.getAttribute("data-export");
+        const table = e.target.getAttribute("data-table");
+        if (type === "excel") exportTableToExcel(table);
+        if (type === "pdf") exportTableToPDF(table);
+      });
+    });
 
-    if (playerExport) {
-        playerExport.addEventListener("click", () => {
-            alert("Excel-Export: Spielerstatistik (Platzhalter).");
-        });
-    }
+    // Start-Button
+    startBtn.addEventListener("click", validateAndStart);
 
-    if (teamExport) {
-        teamExport.addEventListener("click", () => {
-            alert("Excel-Export: Teamstatistik (Platzhalter).");
-        });
-    }
-
-});
+  })(); // Ende IIFE
 </script>
 </body>
 </html>
