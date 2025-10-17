@@ -314,7 +314,7 @@ th { background: #f0f0f0; }
         Object.values(playersData).forEach(p => Object.keys(p).forEach(k => sums[k] += p[k]));
 
         // Nicht-Torhüter für Summen
-        let fieldPlayers = Object.keys(playersData).filter(n => playerCategories[n-1] !== "Torhüter");
+        let fieldPlayers = Object.keys(playersData).filter(n => playerCategories[n-2] !== "Torhüter","Tempo");
 
         // Summen nur aus Rückraum, Außen, Kreis
         let posTotalField = actionsPositive.reduce((s,a) => 
