@@ -113,7 +113,8 @@ th { background: #f0f0f0; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-    (() => {
+
+(() => {
     const cb = Date.now();
     const col1 = document.getElementById("col1");
     const col2 = document.getElementById("col2");
@@ -191,6 +192,7 @@ th { background: #f0f0f0; }
         const n = newPlayerNameInput.value.trim();
         const cat = newPlayerCategorySelect.value;
         if(n){
+            // Änderung: Spieler am Ende der gewählten Kategorie einsortieren
             let insertIndex = playerCategories.findLastIndex(c => c === cat);
             if(insertIndex === -1) insertIndex = playerCategories.length - 1;
             else insertIndex = insertIndex + 1;
@@ -200,7 +202,6 @@ th { background: #f0f0f0; }
             newPlayerNameInput.value="";
         }
     });
-
     function validateAndStart() {
         const opponent = document.getElementById("opponent").value.trim();
         const selected = Array.from(document.querySelectorAll("#player-selection input:checked"));
@@ -223,16 +224,11 @@ th { background: #f0f0f0; }
 
         selectedPlayers.forEach(num => {
             playersData[num] = {};
-            [...actionsPositive, ...actionsNegative].forEach(a => {
-                playersData[num][a.key] = 0;
-                playersData[num][a.key + "_temp"] = 0; // Tempotor-Zähler
-            });
-
+            [...actionsPositive, ...actionsNegative].forEach(a => playersData[num][a.key] = 0);
             const card = document.createElement("div");
             card.className = "player-card";
             const nameDiv = document.createElement("div");
-            nameDiv.className = "player-name";
-            nameDiv.textContent = playerNames[num - 1];
+            nameDiv.className = "player-name"; nameDiv.textContent = playerNames[num - 1];
             card.appendChild(nameDiv);
 
             [...actionsPositive, ...actionsNegative].forEach((a, idx) => {
@@ -241,14 +237,11 @@ th { background: #f0f0f0; }
                 if (a.key.startsWith("TF") && idx >= actionsPositive.length) btn.classList.add("full-width");
                 btn.textContent = `${a.label} (0)`;
 
-                const isFieldPlayer = playerCategories[num - 1] !== "Torhüter";
-                const canAddTempo = (idx < actionsPositive.length || a.key === "TF_neg") && isFieldPlayer;
-
                 const startPress = () => {
                     longPressActive = false;
                     pressTimer = setTimeout(() => {
                         playersData[num][a.key] = Math.max(0, playersData[num][a.key] - 1);
-                        btn.textContent = formatBtnText(num, a);
+                        btn.textContent = `${a.label} (${playersData[num][a.key]})`;
                         updateTables();
                         longPressActive = true;
                     }, 500);
@@ -257,21 +250,10 @@ th { background: #f0f0f0; }
                     clearTimeout(pressTimer);
                     if (!longPressActive) {
                         playersData[num][a.key]++;
-                        btn.textContent = formatBtnText(num, a);
+                        btn.textContent = `${a.label} (${playersData[num][a.key]})`;
                         updateTables();
                     }
                 };
-
-                // Doppelklick für Tempotor
-                btn.addEventListener("dblclick", e => {
-                    if (canAddTempo) {
-                        playersData[num][a.key]++;
-                        playersData[num][a.key + "_temp"]++;
-                        btn.textContent = formatBtnText(num, a);
-                        updateTables();
-                    }
-                });
-
                 btn.addEventListener("mousedown", e => { if (!activeTouch) startPress(); });
                 btn.addEventListener("mouseup", e => { if (!activeTouch) endPress(); });
                 btn.addEventListener("mouseleave", () => clearTimeout(pressTimer));
@@ -292,14 +274,9 @@ th { background: #f0f0f0; }
         updateTables();
     }
 
-    function formatBtnText(num, a) {
-        const val = playersData[num][a.key];
-        const temp = playersData[num][a.key + "_temp"];
-        return temp > 0 ? `${a.label} (${val} (${temp}))` : `${a.label} (${val})`;
-    }
-        function updateTables() {
+    function updateTables() {
         const buildTable = (id, header1, rows) => {
-            let extraHeaders = id === "teamTable" ? "<th>Tempotore</th><th>TW</th>" : "";
+            let extraHeaders = id === "teamTable" ? "<th>TW</th>" : "";
             let headerRow = `<tr><th>${header1}</th>` +
                 actionsPositive.map(a => `<th>${a.label}</th>`).join("") +
                 actionsNegative.map((a,i) => `<th class="${i===0 ? "thick-separator" : ""}">${a.label}</th>`).join("") +
@@ -313,7 +290,7 @@ th { background: #f0f0f0; }
         Object.keys(playersData).forEach(num => {
             const cat = playerCategories[num-1];
             if (lastCategory && lastCategory !== cat) {
-                playerRows += `<tr><td colspan="${actionsPositive.length + actionsNegative.length + 2 + 2}"></td></tr>`;
+                playerRows += `<tr><td colspan="${actionsPositive.length + actionsNegative.length + 2 + 1}"></td></tr>`;
             }
             lastCategory = cat;
 
@@ -325,17 +302,8 @@ th { background: #f0f0f0; }
             let wqTF = posSum+negSum>0 ? (posSum/(posSum+negSum)*100).toFixed(1)+"%" : "-";
 
             playerRows += `<tr><td>${playerNames[num-1]}</td>` +
-                actionsPositive.map(a => {
-                    const val = playersData[num][a.key];
-                    const temp = playersData[num][a.key + "_temp"];
-                    return `<td>${val}${temp>0?` (${temp})`:""}</td>`;
-                }).join("") +
-                actionsNegative.map((a,i) => {
-                    const val = playersData[num][a.key];
-                    const temp = playersData[num][a.key + "_temp"];
-                    const showTemp = a.key === "TF_neg" && temp>0 ? ` (${temp})` : "";
-                    return `<td class="${i===0 ? "thick-separator" : ""}">${val}${showTemp}</td>`;
-                }).join("") +
+                actionsPositive.map(a => `<td>${playersData[num][a.key]}</td>`).join("") +
+                actionsNegative.map((a,i) => `<td class="${i===0 ? "thick-separator" : ""}">${playersData[num][a.key]}</td>`).join("") +
                 `<td>${wq}</td><td>${wqTF}</td></tr>`;
         });
         document.getElementById("playerStats").innerHTML = buildTable("playerTable", "Spieler", playerRows);
@@ -343,35 +311,32 @@ th { background: #f0f0f0; }
         // Teamstatistik
         let sums = {};
         [...actionsPositive, ...actionsNegative].forEach(a => sums[a.key] = 0);
-        let tempoSum = 0;
-        Object.entries(playersData).forEach(([num, p]) => {
-            Object.keys(p).forEach(k => {
-                if (!k.endsWith("_temp")) sums[k] += p[k];
-                else if (playerCategories[num-1] !== "Torhüter") tempoSum += p[k];
-            });
-        });
+        Object.values(playersData).forEach(p => Object.keys(p).forEach(k => sums[k] += p[k]));
 
+        // Nicht-Torhüter für Summen
         let fieldPlayers = Object.keys(playersData).filter(n => playerCategories[n-1] !== "Torhüter");
 
-        let posTotalField = actionsPositive.reduce((s,a)=>
-            s + fieldPlayers.reduce((sum,n)=> sum + playersData[n][a.key],0),0);
-        let negTotalExTFField = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a)=>
-            s + fieldPlayers.reduce((sum,n)=> sum + playersData[n][a.key],0),0);
-        let negTotalField = actionsNegative.reduce((s,a)=>
-            s + fieldPlayers.reduce((sum,n)=> sum + playersData[n][a.key],0),0);
+        // Summen nur aus Rückraum, Außen, Kreis
+        let posTotalField = actionsPositive.reduce((s,a) => 
+            s + fieldPlayers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+        let negTotalExTFField = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a) => 
+            s + fieldPlayers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+        let negTotalField = actionsNegative.reduce((s,a) => 
+            s + fieldPlayers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
 
         let teamWQ = posTotalField+negTotalExTFField>0 ? (posTotalField/(posTotalField+negTotalExTFField)*100).toFixed(1)+"%" : "-";
         let teamWQTF = posTotalField+negTotalField>0 ? (posTotalField/(posTotalField+negTotalField)*100).toFixed(1)+"%" : "-";
 
+        // TW für Torhüter
         let goalkeepers = Object.keys(playersData).filter(n => playerCategories[n-1] === "Torhüter");
-        let posGK = actionsPositive.reduce((s,a) => s + goalkeepers.reduce((sum,n)=>sum+playersData[n][a.key],0),0);
-        let negExTFGK = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a) => s + goalkeepers.reduce((sum,n)=>sum+playersData[n][a.key],0),0);
+        let posGK = actionsPositive.reduce((s,a) => s + goalkeepers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+        let negExTFGK = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a) => s + goalkeepers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
         let tw = posGK+negExTFGK>0 ? (posGK/(posGK+negExTFGK)*100).toFixed(1)+"%" : "-";
 
         let teamRow = `<tr><td>Gesamt</td>` +
             actionsPositive.map(a=>`<td>${fieldPlayers.reduce((sum,n)=>sum+playersData[n][a.key],0)}</td>`).join("") +
-            actionsNegative.map((a,i)=>`<td class="${i===0?"thick-separator":""}">${fieldPlayers.reduce((sum,n)=>sum+playersData[n][a.key],0)}</td>`).join("") +
-            `<td>${teamWQ}</td><td>${teamWQTF}</td><td>${tempoSum}</td><td>${tw}</td></tr>`;
+            actionsNegative.map((a,i)=>`<td class="${i===0 ? "thick-separator" : ""}">${fieldPlayers.reduce((sum,n)=>sum+playersData[n][a.key],0)}</td>`).join("") +
+            `<td>${teamWQ}</td><td>${teamWQTF}</td><td>${tw}</td></tr>`;
 
         document.getElementById("teamStats").innerHTML = buildTable("teamTable", "Team", teamRow);
     }
@@ -398,6 +363,7 @@ th { background: #f0f0f0; }
             styles: { lineWidth: 0.2, lineColor: [0,0,0], halign: 'center', valign: 'middle' },
             headStyles: { fillColor: [240,240,240], textColor: 0, lineWidth: 0.2, lineColor: [0,0,0] },
             didParseCell: (data) => {
+                // dicke vertikale Linie zwischen positiven und negativen Aktionen
                 if (data.column.index === actionsPositive.length) {
                     data.cell.styles.lineLeftWidth = 1.5;
                     data.cell.styles.lineLeftColor = [0,0,0];
