@@ -307,7 +307,7 @@ th { background: #f0f0f0; }
     function updateTables() {
         const buildTable = (id, header1, rows) => {
             let extraHeaders = id === "teamTable" ? "<th>TW</th>" : "";
-            let extraNameHeader = id === "playerTable" ? "<th>Spieler (rechts)</th>" : "";
+            let extraNameHeader = id === "playerTable" ? "<th>Spieler</th>" : "";
             let headerRow = `<tr><th>${header1}</th>` +
                 actionsPositive.map(a => `<th>${a.label}</th>`).join("") +
                 actionsNegative.map((a,i) => `<th class="${i===0 ? "thick-separator" : ""}">${a.label}</th>`).join("") +
@@ -396,13 +396,8 @@ th { background: #f0f0f0; }
             headStyles: { fillColor: [240,240,240], textColor: 0, lineWidth: 0.2, lineColor: [0,0,0] },
             didParseCell: (data) => {
                 if (data.column.index === actionsPositive.length) {
-                    data.cell.styles.lineWidth = {
-                        top: 0.2,
-                        right: 0.2,
-                        bottom: 0.2,
-                        left: 1.0
-                    };
-                    data.cell.styles.lineColor = [0,0,0];
+                    data.cell.styles.lineLeftWidth = 4.5;
+                    data.cell.styles.lineLeftColor = [0,0,0];
                 }
             }
         });
@@ -422,13 +417,8 @@ th { background: #f0f0f0; }
             headStyles: { fillColor: [240,240,240], textColor: 0, lineWidth: 0.2, lineColor: [0,0,0] },
             didParseCell: (data) => {
                 if (data.column.index === actionsPositive.length) {
-                    data.cell.styles.lineWidth = {
-                        top: 0.2,
-                        right: 0.2,
-                        bottom: 0.2,
-                        left: 1.0
-                    };
-                    data.cell.styles.lineColor = [0,0,0];
+                    data.cell.styles.lineLeftWidth = 4.5;
+                    data.cell.styles.lineLeftColor = [0,0,0];
                 }
             }
         });
@@ -442,12 +432,11 @@ th { background: #f0f0f0; }
                 doc.addPage();
                 y = 20;
             }
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'bold');
+            doc.setFontSize(12);
             doc.text("Notizen:", 14, y);
-            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
             const splitText = doc.splitTextToSize(notesText, 260);
-            doc.text(splitText, 14, y + 5);
+            doc.text(splitText, 14, y + 6);
         }
 
         // Erstellt-am-Datum auf letzter Seite
