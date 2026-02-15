@@ -61,6 +61,27 @@ th { background: #f0f0f0; }
 .thick-separator { border-left: 3px solid black !important; }
 .export-buttons { margin-top: 20px; text-align: center; }
 .hidden { display: none; }
+
+/* Notiz-Feld */
+#notesContainer {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 10px;
+}
+#notesContainer label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+#notes {
+    width: 100%;
+    min-height: 80px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    resize: vertical;
+}
+
 @media (max-width: 768px) {
     .btn { width: 48%; font-size: 0.85em; padding: 6px; }
     .player-card { min-width: unset; width: 100%; }
@@ -109,6 +130,13 @@ th { background: #f0f0f0; }
     <button data-export="pdf" data-table="teamTable">Export PDF</button>
 </div>
 <div id="teamStats"></div>
+
+<!-- Notiz-Feld unter der Teamstatistik -->
+<div id="notesContainer" class="hidden">
+    <label for="notes">Notizen:</label>
+    <textarea id="notes" placeholder="Notizen zum Spiel eingeben..."></textarea>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -123,6 +151,8 @@ th { background: #f0f0f0; }
     const addPlayerBtn = document.getElementById("addPlayerBtn");
     const newPlayerNameInput = document.getElementById("newPlayerName");
     const newPlayerCategorySelect = document.getElementById("newPlayerCategory");
+    const notesContainer = document.getElementById("notesContainer");
+    const notesElement = document.getElementById("notes");
 
     let currentOpponent = "";
 
@@ -219,6 +249,7 @@ th { background: #f0f0f0; }
         document.getElementById("headline").classList.remove("hidden");
         document.getElementById("playerExport").classList.remove("hidden");
         document.getElementById("teamExport").classList.remove("hidden");
+        notesContainer.classList.remove("hidden");
         const playersDiv = document.getElementById("players");
         playersDiv.innerHTML = "";
 
@@ -277,10 +308,12 @@ th { background: #f0f0f0; }
     function updateTables() {
         const buildTable = (id, header1, rows) => {
             let extraHeaders = id === "teamTable" ? "<th>TW</th>" : "";
+            // zusätzliche Namensspalte rechts
+            let extraNameHeader = id === "playerTable" ? "<th>Spieler (rechts)</th>" : "";
             let headerRow = `<tr><th>${header1}</th>` +
                 actionsPositive.map(a => `<th>${a.label}</th>`).join("") +
                 actionsNegative.map((a,i) => `<th class="${i===0 ? "thick-separator" : ""}">${a.label}</th>`).join("") +
-                `<th>WQ</th><th>WQ inkl. TF</th>` + extraHeaders + `</tr>`;
+                `<th>WQ</th><th>WQ inkl. TF</th>` + extraHeaders + extraNameHeader + `</tr>`;
             return `<table id="${id}">${headerRow}${rows}</table>`;
         };
 
@@ -290,7 +323,7 @@ th { background: #f0f0f0; }
         Object.keys(playersData).forEach(num => {
             const cat = playerCategories[num-1];
             if (lastCategory && lastCategory !== cat) {
-                playerRows += `<tr><td colspan="${actionsPositive.length + actionsNegative.length + 2 + 1}"></td></tr>`;
+                playerRows += `<tr><td colspan="${actionsPositive.length + actionsNegative.length + 2 + 1 + 1}"></td></tr>`;
             }
             lastCategory = cat;
 
@@ -304,7 +337,7 @@ th { background: #f0f0f0; }
             playerRows += `<tr><td>${playerNames[num-1]}</td>` +
                 actionsPositive.map(a => `<td>${playersData[num][a.key]}</td>`).join("") +
                 actionsNegative.map((a,i) => `<td class="${i===0 ? "thick-separator" : ""}">${playersData[num][a.key]}</td>`).join("") +
-                `<td>${wq}</td><td>${wqTF}</td></tr>`;
+                `<td>${wq}</td><td>${wqTF}</td><td>${playerNames[num-1]}</td></tr>`;
         });
         document.getElementById("playerStats").innerHTML = buildTable("playerTable", "Spieler", playerRows);
 
@@ -369,11 +402,28 @@ th { background: #f0f0f0; }
                     data.cell.styles.lineLeftColor = [0,0,0];
                 }
             },
-            didDrawPage: () => {
+            didDrawPage: (data) => {
                 doc.setFontSize(10);
                 doc.text(`Erstellt am: ${new Date().toLocaleString()}`, 14, 200);
             }
         });
+
+        // Notizen unterhalb der Tabelle
+        const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : 20;
+        const notesText = notesElement.value || "";
+        if (notesText.trim() !== "") {
+            let y = finalY + 10;
+            if (y > 190) {
+                doc.addPage();
+                y = 20;
+            }
+            doc.setFontSize(12);
+            doc.text("Notizen:", 14, y);
+            doc.setFontSize(10);
+            const splitText = doc.splitTextToSize(notesText, 260);
+            doc.text(splitText, 14, y + 6);
+        }
+
         doc.save(`${tableID}.pdf`);
     }
 
