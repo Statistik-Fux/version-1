@@ -309,7 +309,7 @@ th { background: #f0f0f0; }
         const buildTable = (id, header1, rows) => {
             let extraHeaders = id === "teamTable" ? "<th>TW</th>" : "";
             // zusätzliche Namensspalte rechts
-            let extraNameHeader = id === "playerTable" ? "<th>Spieler (rechts)</th>" : "";
+            let extraNameHeader = id === "playerTable" ? "<th>Spieler</th>" : "";
             let headerRow = `<tr><th>${header1}</th>` +
                 actionsPositive.map(a => `<th>${a.label}</th>`).join("") +
                 actionsNegative.map((a,i) => `<th class="${i===0 ? "thick-separator" : ""}">${a.label}</th>`).join("") +
@@ -398,7 +398,7 @@ th { background: #f0f0f0; }
             didParseCell: (data) => {
                 // dicke vertikale Linie zwischen positiven und negativen Aktionen
                 if (data.column.index === actionsPositive.length) {
-                    data.cell.styles.lineLeftWidth = 1.5;
+                    data.cell.styles.lineLeftWidth = 4.5;
                     data.cell.styles.lineLeftColor = [0,0,0];
                 }
             },
