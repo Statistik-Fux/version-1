@@ -7,7 +7,7 @@
 
 <!-- Cache verhindern -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Pragma" content="no-cache, no-store" />
 <meta http-equiv="Expires" content="0" />
 
 <style>
@@ -62,6 +62,59 @@ th { background: #f0f0f0; }
 .export-buttons { margin-top: 20px; text-align: center; }
 .hidden { display: none; }
 
+/* Anzeige der vergangenen zehn Angriffe */
+#attackOverview {
+    max-width: 1000px;
+    margin: 15px auto 0;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.88);
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+.attack-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0;
+    flex-wrap: wrap;
+}
+.attack-label {
+    font-weight: bold;
+    min-width: 72px;
+}
+.attack-dots {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.attack-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.attack-dot.goal {
+    background-color: #2e7d32;
+}
+.attack-dot.miss {
+    background-color: #c62828;
+}
+#tfOpponentBtn {
+    margin-left: auto;
+    padding: 7px 12px;
+    font-size: 0.9em;
+    border: none;
+    border-radius: 6px;
+    background-color: #ffd54f;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+}
+#tfOpponentBtn:active {
+    transform: scale(0.97);
+}
+
 /* Notiz-Feld */
 #notesContainer {
     max-width: 1000px;
@@ -88,6 +141,11 @@ th { background: #f0f0f0; }
     #player-selection { flex-direction: column; }
     #player-selection .column { width: 100%; }
     table { font-size: 0.8em; }
+    #tfOpponentBtn {
+        margin-left: 0;
+        width: 100%;
+        margin-top: 8px;
+    }
 }
 </style>
 </head>
@@ -117,6 +175,19 @@ th { background: #f0f0f0; }
 </main>
 
 <h1 id="headline" class="hidden"></h1>
+
+<div id="attackOverview" class="hidden">
+    <div class="attack-row">
+        <span class="attack-label">Fux2:</span>
+        <div class="attack-dots" id="fuxAttackDots"></div>
+    </div>
+    <div class="attack-row">
+        <span class="attack-label">Gegner:</span>
+        <div class="attack-dots" id="opponentAttackDots"></div>
+    </div>
+    <button type="button" id="tfOpponentBtn">TF Gegner</button>
+</div>
+
 <div id="players" class="grid"></div>
 
 <div class="export-buttons hidden" id="playerExport">
@@ -193,6 +264,120 @@ th { background: #f0f0f0; }
     let playersData = {};
     let pressTimer, longPressActive, activeTouch;
 
+    // Angriffsanzeige: Der jeweils neueste Angriff steht links.
+    const MAX_ATTACKS = 10;
+    let fuxAttackHistory = [];
+    let opponentAttackHistory = [];
+
+    const fuxAttackDots = document.getElementById("fuxAttackDots");
+    const opponentAttackDots = document.getElementById("opponentAttackDots");
+    const tfOpponentBtn = document.getElementById("tfOpponentBtn");
+    const attackOverview = document.getElementById("attackOverview");
+
+    function renderAttackDots(container, history) {
+        container.innerHTML = "";
+
+        history.forEach(attack => {
+            const dot = document.createElement("span");
+            dot.className = "attack-dot " + (attack.scored ? "goal" : "miss");
+            container.appendChild(dot);
+        });
+    }
+
+    function renderAttacks() {
+        renderAttackDots(fuxAttackDots, fuxAttackHistory);
+        renderAttackDots(opponentAttackDots, opponentAttackHistory);
+    }
+
+    function addAttack(team, scored) {
+        const history = team === "fux" ? fuxAttackHistory : opponentAttackHistory;
+
+        history.unshift({ scored: scored });
+        if (history.length > MAX_ATTACKS) {
+            history.length = MAX_ATTACKS;
+        }
+
+        renderAttacks();
+    }
+
+    function removeLastAttack(team, scored) {
+        const history = team === "fux" ? fuxAttackHistory : opponentAttackHistory;
+        const index = history.findIndex(attack => attack.scored === scored);
+
+        if (index !== -1) {
+            history.splice(index, 1);
+            renderAttacks();
+        }
+    }
+
+    function registerAttackFromButton(playerNumber, actionKey, isPositive) {
+        const category = playerCategories[playerNumber - 1];
+
+        if (category === "Tempo") {
+            return;
+        }
+
+        if (category === "Torhüter") {
+            // Grüner Torhüter-Button: Gegner hat kein Tor geworfen.
+            // Roter Torhüter-Button: Gegner hat ein Tor geworfen.
+            addAttack("opponent", !isPositive);
+            return;
+        }
+
+        // Feldspieler: Grüner Button = Fux2-Tor, roter Button = kein Fux2-Tor.
+        addAttack("fux", isPositive);
+    }
+
+    function removeAttackFromButton(playerNumber, actionKey, isPositive) {
+        const category = playerCategories[playerNumber - 1];
+
+        if (category === "Tempo") {
+            return;
+        }
+
+        if (category === "Torhüter") {
+            removeLastAttack("opponent", !isPositive);
+            return;
+        }
+
+        removeLastAttack("fux", isPositive);
+    }
+
+    function handleTfOpponentPress() {
+        longPressActive = false;
+        pressTimer = setTimeout(() => {
+            removeLastAttack("opponent", false);
+            longPressActive = true;
+        }, 500);
+    }
+
+    function handleTfOpponentRelease() {
+        clearTimeout(pressTimer);
+        if (!longPressActive) {
+            // TF Gegner bedeutet: kein Tor des Gegners.
+            addAttack("opponent", false);
+        }
+    }
+
+    tfOpponentBtn.addEventListener("mousedown", () => {
+        if (!activeTouch) handleTfOpponentPress();
+    });
+    tfOpponentBtn.addEventListener("mouseup", () => {
+        if (!activeTouch) handleTfOpponentRelease();
+    });
+    tfOpponentBtn.addEventListener("mouseleave", () => clearTimeout(pressTimer));
+    tfOpponentBtn.addEventListener("touchstart", event => {
+        activeTouch = true;
+        handleTfOpponentPress();
+        event.preventDefault();
+    });
+    tfOpponentBtn.addEventListener("touchend", event => {
+        handleTfOpponentRelease();
+        setTimeout(() => activeTouch = false, 300);
+        event.preventDefault();
+    });
+    tfOpponentBtn.addEventListener("touchcancel", () => clearTimeout(pressTimer));
+
     window.addEventListener("load", () => {
         document.styleSheets[0].cssRules[1].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
         document.styleSheets[0].cssRules[2].style.backgroundImage = `url('logo.png.JPG?cb=${cb}')`;
@@ -249,8 +434,13 @@ th { background: #f0f0f0; }
         document.getElementById("playerExport").classList.remove("hidden");
         document.getElementById("teamExport").classList.remove("hidden");
         notesContainer.classList.remove("hidden");
+        attackOverview.classList.remove("hidden");
         const playersDiv = document.getElementById("players");
         playersDiv.innerHTML = "";
+
+        fuxAttackHistory = [];
+        opponentAttackHistory = [];
+        renderAttacks();
 
         selectedPlayers.forEach(num => {
             playersData[num] = {};
@@ -263,7 +453,8 @@ th { background: #f0f0f0; }
 
             [...actionsPositive, ...actionsNegative].forEach((a, idx) => {
                 const btn = document.createElement("button");
-                btn.className = `btn ${idx < actionsPositive.length ? "positive" : "negative"}`;
+                const isPositive = idx < actionsPositive.length;
+                btn.className = `btn ${isPositive ? "positive" : "negative"}`;
                 if (a.key.startsWith("TF") && idx >= actionsPositive.length) btn.classList.add("full-width");
                 btn.textContent = `${a.label} (0)`;
 
@@ -273,6 +464,7 @@ th { background: #f0f0f0; }
                         playersData[num][a.key] = Math.max(0, playersData[num][a.key] - 1);
                         btn.textContent = `${a.label} (${playersData[num][a.key]})`;
                         updateTables();
+                        removeAttackFromButton(num, a.key, isPositive);
                         longPressActive = true;
                     }, 500);
                 };
@@ -282,6 +474,7 @@ th { background: #f0f0f0; }
                         playersData[num][a.key]++;
                         btn.textContent = `${a.label} (${playersData[num][a.key]})`;
                         updateTables();
+                        registerAttackFromButton(num, a.key, isPositive);
                     }
                 };
                 btn.addEventListener("mousedown", e => { if (!activeTouch) startPress(); });
@@ -466,11 +659,11 @@ th { background: #f0f0f0; }
     function exportCompletePDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({orientation: 'landscape', unit: 'mm', format: 'a4'});
-        
+
         // Titel
         doc.setFontSize(16);
         doc.text(`Statistik vs ${currentOpponent}`, 14, 15);
-        
+
         // Spielerstatistik-Tabelle
         doc.autoTable({
             html: '#playerTable',
@@ -488,7 +681,7 @@ th { background: #f0f0f0; }
 
         // Teamstatistik-Tabelle (unterhalb der Spielerstatistik)
         let currentY = doc.lastAutoTable.finalY + 10;
-        
+
         doc.setFontSize(14);
         doc.text('Teamstatistik', 14, currentY);
         currentY += 5;
