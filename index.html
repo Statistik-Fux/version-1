@@ -71,6 +71,16 @@ th { background: #f0f0f0; }
     border-radius: 12px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
 }
+.attack-content {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    width: 100%;
+}
+.attack-lines {
+    flex: 1;
+    min-width: 0;
+}
 .attack-row {
     display: flex;
     align-items: center;
@@ -96,18 +106,15 @@ th { background: #f0f0f0; }
     border-radius: 50%;
     flex-shrink: 0;
 }
-.attack-dot.goal {
-    background-color: #2e7d32;
-}
-.attack-dot.miss {
-    background-color: #c62828;
-}
+.attack-dot.goal { background-color: #2e7d32; }
+.attack-dot.miss { background-color: #c62828; }
 .attack-group-gap {
     width: 28px;
     flex-shrink: 0;
 }
 #tfOpponentBtn {
-    margin-left: 14px;
+    flex: 0 0 auto;
+    margin: 0;
     padding: 10px 16px;
     font-size: 1em;
     white-space: nowrap;
@@ -148,8 +155,12 @@ th { background: #f0f0f0; }
     #player-selection { flex-direction: column; }
     #player-selection .column { width: 100%; }
     table { font-size: 0.8em; }
+    .attack-content {
+        align-items: flex-start;
+        gap: 10px;
+    }
     .attack-row {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
     .attack-label {
         min-width: 92px;
@@ -160,9 +171,8 @@ th { background: #f0f0f0; }
         height: 24px;
     }
     #tfOpponentBtn {
-        margin-left: 0;
-        width: auto;
-        margin-top: 8px;
+        padding: 8px 10px;
+        font-size: 0.9em;
     }
 }
 </style>
@@ -195,15 +205,19 @@ th { background: #f0f0f0; }
 <h1 id="headline" class="hidden"></h1>
 
 <div id="attackOverview" class="hidden">
-    <div class="attack-row">
-        <span class="attack-label">Fux2:</span>
-        <div class="attack-dots" id="fuxAttackDots"></div>
+    <div class="attack-content">
+        <div class="attack-lines">
+            <div class="attack-row">
+                <span class="attack-label">Fux2:</span>
+                <div class="attack-dots" id="fuxAttackDots"></div>
+            </div>
+            <div class="attack-row">
+                <span class="attack-label" id="opponentAttackLabel">Gegner:</span>
+                <div class="attack-dots" id="opponentAttackDots"></div>
+            </div>
+        </div>
+        <button type="button" id="tfOpponentBtn">TF Gegner</button>
     </div>
-    <div class="attack-row">
-        <span class="attack-label" id="opponentAttackLabel">Gegner:</span>
-        <div class="attack-dots" id="opponentAttackDots"></div>
-    </div>
-    <button type="button" id="tfOpponentBtn">TF Gegner</button>
 </div>
 
 <div id="players" class="grid"></div>
