@@ -339,35 +339,128 @@ th { background: #f0f0f0; }
         });
         document.getElementById("playerStats").innerHTML = buildTable("playerTable", "Spieler", playerRows);
 
-        // Teamstatistik
-        let sums = {};
-        [...actionsPositive, ...actionsNegative].forEach(a => sums[a.key] = 0);
-        Object.values(playersData).forEach(p => Object.keys(p).forEach(k => sums[k] += p[k]));
+// Teamstatistik
 
-        let fieldPlayers = Object.keys(playersData).filter(n => playerCategories[n-2] !== "Torhüter","Tempo");
+const playerKeys = Object.keys(playersData);
 
-        let posTotalField = actionsPositive.reduce((s,a) => 
-            s + fieldPlayers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
-        let negTotalExTFField = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a) => 
-            s + fieldPlayers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
-        let negTotalField = actionsNegative.reduce((s,a) => 
-            s + fieldPlayers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
+const getCategory = playerKey => {
+    return playerCategories[Number(playerKey) - 1];
+};
 
-        let teamWQ = posTotalField+negTotalExTFField>0 ? (posTotalField/(posTotalField+negTotalExTFField)*100).toFixed(1)+"%" : "-";
-        let teamWQTF = posTotalField+negTotalField>0 ? (posTotalField/(posTotalField+negTotalField)*100).toFixed(1)+"%" : "-";
+// Für alle normalen Aktionen:
+// Torhüter und Tempo werden ausgeschlossen
+const regularPlayers = playerKeys.filter(playerKey => {
+    const category = getCategory(playerKey);
+    return category !== "Torhüter" && category !== "Tempo";
+});
 
-        let goalkeepers = Object.keys(playersData).filter(n => playerCategories[n-1] === "Torhüter");
-        let posGK = actionsPositive.reduce((s,a) => s + goalkeepers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
-        let negExTFGK = actionsNegative.filter(a=>a.key!=="TF_neg").reduce((s,a) => s + goalkeepers.reduce((sum,n) => sum + playersData[n][a.key],0),0);
-        let tw = posGK+negExTFGK>0 ? (posGK/(posGK+negExTFGK)*100).toFixed(1)+"%" : "-";
+// Für TF:
+// Torhüter werden mitgerechnet, Tempo bleibt ausgeschlossen
+const tfPlayers = playerKeys.filter(playerKey => {
+    return getCategory(playerKey) !== "Tempo";
+});
 
-        let teamRow = `<tr><td>Gesamt</td>` +
-            actionsPositive.map(a=>`<td>${fieldPlayers.reduce((sum,n)=>sum+playersData[n][a.key],0)}</td>`).join("") +
-            actionsNegative.map((a,i)=>`<td class="${i===0 ? "thick-separator" : ""}">${fieldPlayers.reduce((sum,n)=>sum+playersData[n][a.key],0)}</td>`).join("") +
-            `<td>${teamWQ}</td><td>${teamWQTF}</td><td>${tw}</td></tr>`;
+// Für TW:
+// ausschließlich Torhüter
+const goalkeeperPlayers = playerKeys.filter(playerKey => {
+    return getCategory(playerKey) === "Torhüter";
+});
 
-        document.getElementById("teamStats").innerHTML = buildTable("teamTable", "Team", teamRow);
-    }
+const sumAction = (players, actionKey) => {
+    return players.reduce((sum, playerKey) => {
+        return sum + (playersData[playerKey][actionKey] || 0);
+    }, 0);
+};
+
+const sumActions = (players, actions) => {
+    return actions.reduce((sum, action) => {
+        return sum + sumAction(players, action.key);
+    }, 0);
+};
+
+// Normale positive Aktionen ohne Torhüter und Tempo
+const posTotalRegular = sumActions(
+    regularPlayers,
+    actionsPositive
+);
+
+// Normale negative Aktionen ohne TF,
+// ebenfalls ohne Torhüter und Tempo
+const negTotalExTFRegular = sumActions(
+    regularPlayers,
+    actionsNegative.filter(action => action.key !== "TF_neg")
+);
+
+// TF einschließlich Torhüter, aber ohne Tempo
+const tfTotal = sumAction(tfPlayers, "TF_neg");
+
+// Negative Gesamtwerte inklusive TF
+const negTotalIncludingTF =
+    negTotalExTFRegular + tfTotal;
+
+// WQ ohne TF
+const teamWQ =
+    posTotalRegular + negTotalExTFRegular > 0
+        ? (
+            posTotalRegular /
+            (posTotalRegular + negTotalExTFRegular) *
+            100
+        ).toFixed(1) + "%"
+        : "-";
+
+// WQ inklusive TF
+const teamWQTF =
+    posTotalRegular + negTotalIncludingTF > 0
+        ? (
+            posTotalRegular /
+            (posTotalRegular + negTotalIncludingTF) *
+            100
+        ).toFixed(1) + "%"
+        : "-";
+
+// TW ausschließlich aus den Torhüter-Werten
+const posGoalkeepers = sumActions(
+    goalkeeperPlayers,
+    actionsPositive
+);
+
+const negExTFGoalkeepers = sumActions(
+    goalkeeperPlayers,
+    actionsNegative.filter(action => action.key !== "TF_neg")
+);
+
+const tw =
+    posGoalkeepers + negExTFGoalkeepers > 0
+        ? (
+            posGoalkeepers /
+            (posGoalkeepers + negExTFGoalkeepers) *
+            100
+        ).toFixed(1) + "%"
+        : "-";
+
+// Teamzeile
+const teamRow = `<tr><td>Gesamt</td>` +
+    actionsPositive.map(action =>
+        `<td>${sumAction(regularPlayers, action.key)}</td>`
+    ).join("") +
+    actionsNegative.map((action, index) => {
+        const playersForAction =
+            action.key === "TF_neg"
+                ? tfPlayers
+                : regularPlayers;
+
+        return `<td class="${index === 0 ? "thick-separator" : ""}">
+            ${sumAction(playersForAction, action.key)}
+        </td>`;
+    }).join("") +
+    `<td>${teamWQ}</td>
+     <td>${teamWQTF}</td>
+     <td>${tw}</td>
+     </tr>`;
+
+document.getElementById("teamStats").innerHTML =
+    buildTable("teamTable", "Team", teamRow);
+
 
     function exportTableToExcel(tableID) {
         const table = document.getElementById(tableID);
