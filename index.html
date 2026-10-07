@@ -66,7 +66,7 @@ th { background: #f0f0f0; }
 #attackOverview {
     max-width: 1000px;
     margin: 15px auto 0;
-    padding: 10px 15px;
+    padding: 14px 18px;
     background: rgba(255, 255, 255, 0.88);
     border-radius: 12px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
@@ -74,23 +74,23 @@ th { background: #f0f0f0; }
 .attack-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin: 6px 0;
+    gap: 12px;
+    margin: 7px 0;
     flex-wrap: wrap;
 }
 .attack-label {
     font-weight: bold;
-    min-width: 72px;
+    min-width: 90px;
 }
 .attack-dots {
     display: flex;
-    gap: 7px;
+    gap: 8px;
     flex-wrap: wrap;
     align-items: center;
 }
 .attack-dot {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     flex-shrink: 0;
 }
@@ -100,9 +100,13 @@ th { background: #f0f0f0; }
 .attack-dot.miss {
     background-color: #c62828;
 }
+.attack-group-gap {
+    width: 22px;
+    flex-shrink: 0;
+}
 #tfOpponentBtn {
     margin-left: auto;
-    padding: 7px 12px;
+    padding: 8px 14px;
     font-size: 0.9em;
     border: none;
     border-radius: 6px;
@@ -182,7 +186,7 @@ th { background: #f0f0f0; }
         <div class="attack-dots" id="fuxAttackDots"></div>
     </div>
     <div class="attack-row">
-        <span class="attack-label">Gegner:</span>
+        <span class="attack-label" id="opponentAttackLabel">Gegner:</span>
         <div class="attack-dots" id="opponentAttackDots"></div>
     </div>
     <button type="button" id="tfOpponentBtn">TF Gegner</button>
@@ -271,13 +275,21 @@ th { background: #f0f0f0; }
 
     const fuxAttackDots = document.getElementById("fuxAttackDots");
     const opponentAttackDots = document.getElementById("opponentAttackDots");
+    const opponentAttackLabel = document.getElementById("opponentAttackLabel");
     const tfOpponentBtn = document.getElementById("tfOpponentBtn");
     const attackOverview = document.getElementById("attackOverview");
 
     function renderAttackDots(container, history) {
         container.innerHTML = "";
 
-        history.forEach(attack => {
+        history.forEach((attack, index) => {
+            // Nach den ersten fünf Angriffen einen kleinen Abstand einfügen.
+            if (index === 5) {
+                const gap = document.createElement("span");
+                gap.className = "attack-group-gap";
+                container.appendChild(gap);
+            }
+
             const dot = document.createElement("span");
             dot.className = "attack-dot " + (attack.scored ? "goal" : "miss");
             container.appendChild(dot);
@@ -317,6 +329,13 @@ th { background: #f0f0f0; }
             return;
         }
 
+        // TF eines Torhüters wird wie TF eines Feldspielers behandelt:
+        // kein Tor von Fux2; für den Gegner wird kein Angriff erfasst.
+        if (category === "Torhüter" && actionKey === "TF_neg") {
+            addAttack("fux", false);
+            return;
+        }
+
         if (category === "Torhüter") {
             // Grüner Torhüter-Button: Gegner hat kein Tor geworfen.
             // Roter Torhüter-Button: Gegner hat ein Tor geworfen.
@@ -332,6 +351,12 @@ th { background: #f0f0f0; }
         const category = playerCategories[playerNumber - 1];
 
         if (category === "Tempo") {
+            return;
+        }
+
+        // TF eines Torhüters wird wie TF eines Feldspielers behandelt.
+        if (category === "Torhüter" && actionKey === "TF_neg") {
+            removeLastAttack("fux", false);
             return;
         }
 
@@ -429,6 +454,7 @@ th { background: #f0f0f0; }
 
     function startGame(opponent, selectedPlayers) {
         document.getElementById("headline").innerText = `Statistik vs ${opponent}`;
+        opponentAttackLabel.textContent = `${opponent}:`;
         document.getElementById("setup").classList.add("hidden");
         document.getElementById("headline").classList.remove("hidden");
         document.getElementById("playerExport").classList.remove("hidden");
